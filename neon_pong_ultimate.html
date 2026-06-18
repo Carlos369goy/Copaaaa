@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Pong Ultimate</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Lucide Icons Script -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@500;600;700&display=swap');
+        
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background-color: #020208;
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+        .font-orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+        /* Barras de rolagem personalizadas */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #090d22;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4f46e5;
+            border-radius: 3px;
+        }
+        /* Efeitos luminosos Neon */
+        .neon-glow-cyan {
+            text-shadow: 0 0 10px rgba(34, 211, 238, 0.6), 0 0 20px rgba(34, 211, 238, 0.3);
+        }
+        .neon-glow-pink {
+            text-shadow: 0 0 10px rgba(236, 72, 153, 0.6), 0 0 20px rgba(236, 72, 153, 0.3);
+        }
+        .neon-glow-purple {
+            text-shadow: 0 0 10px rgba(168, 85, 247, 0.6), 0 0 20px rgba(168, 85, 247, 0.3);
+        }
+        .neon-border-cyan {
+            box-shadow: 0 0 15px rgba(34, 211, 238, 0.4), inset 0 0 15px rgba(34, 211, 238, 0.2);
+            border: 2px solid #22d3ee;
+        }
+        .neon-border-pink {
+            box-shadow: 0 0 15px rgba(236, 72, 153, 0.4), inset 0 0 15px rgba(236, 72, 153, 0.2);
+            border: 2px solid #ec4899;
+        }
+        .neon-border-purple {
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.4), inset 0 0 15px rgba(168, 85, 247, 0.2);
+            border: 2px solid #a855f7;
+        }
+        .bg-grid {
+            background-size: 40px 40px;
+            background-image: linear-gradient(to right, rgba(79, 70, 229, 0.05) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(79, 70, 229, 0.05) 1px, transparent 1px);
+        }
+        /* Animação de pulsação suave */
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 0.8; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.02); }
+        }
+        .animate-pulse-slow {
+            animation: pulse-slow 3s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-grid min-h-screen flex flex-col justify-between select-none">
+
+    <!-- Cabeçalho Principal -->
+    <header class="w-full max-w-6xl mx-auto px-6 py-4 flex justify-between items-center z-10">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-[0_0_15px_rgba(99,102,241,0.5)]">
+                <i data-lucide="activity" class="w-6 h-6 text-white animate-pulse"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl font-black font-orbitron tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-indigo-400 to-pink-500">
+                    NEON PONG
+                </h1>
+                <p class="text-xs text-indigo-400 font-semibold tracking-widest uppercase">Ultimate Edition</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <button id="btnSoundToggle" class="p-2 rounded-full border border-indigo-900/50 bg-indigo-950/20 hover:bg-indigo-900/40 text-indigo-300 transition-all duration-300">
+                <i data-lucide="volume-2" id="iconSound" class="w-5 h-5"></i>
+            </button>
+            <div class="text-sm font-semibold text-indigo-300/80 bg-indigo-950/30 border border-indigo-900/30 px-3 py-1 rounded-full flex items-center gap-1">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                ONLINE
+            </div>
+        </div>
+    </header>
+
+    <!-- Área do Jogo / Ecrãs -->
+    <main class="flex-grow flex items-center justify-center p-4 z-10">
+        <div class="relative w-full max-w-4xl aspect-[16/10] bg-slate-950/80 rounded-2xl border border-indigo-900/40 shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col justify-center items-center">
+            
+            <!-- 1. ECRÃ DO MENU PRINCIPAL -->
+            <div id="menuScreen" class="absolute inset-0 flex flex-col items-center justify-center p-6 z-20 transition-all duration-500">
+                <div class="text-center mb-10 max-w-lg">
+                    <h2 class="text-5xl md:text-6xl font-black font-orbitron tracking-tighter mb-2 animate-pulse-slow">
+                        <span class="text-cyan-400 neon-glow-cyan">NEON</span>
+                        <span class="text-pink-500 neon-glow-pink">PONG</span>
+                    </h2>
+                    <p class="text-indigo-300 text-sm md:text-base tracking-wide">
+                        Entre na arena retro-futurista e domine o adversário com reflexos de alta velocidade!
+                    </p>
+                </div>
+
+                <!-- Modos de Jogo -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-2xl mb-8">
+                    <!-- Modo Clássico -->
+                    <button id="btnClassic" class="flex flex-col items-center p-5 rounded-xl border border-indigo-950 bg-indigo-950/20 hover:bg-cyan-500/10 hover:border-cyan-400 transition-all duration-300 group cursor-pointer">
+                        <div class="w-12 h-12 rounded-lg bg-cyan-950/40 border border-cyan-800/50 flex items-center justify-center mb-3 group-hover:scale-110 group-hover:border-cyan-400 transition-all duration-300">
+                            <i data-lucide="zap" class="w-6 h-6 text-cyan-400"></i>
+                        </div>
+                        <span class="font-orbitron font-bold text-lg text-slate-100 mb-1">Clássico</span>
+                        <span class="text-xs text-indigo-300/70 text-center">O clássico 1vs1 contra a Inteligência Artificial.</span>
+                    </button>
+
+                    <!-- Modo Sobrevivência -->
+                    <button id="btnSurvival" class="flex flex-col items-center p-5 rounded-xl border border-indigo-950 bg-indigo-950/20 hover:bg-pink-500/10 hover:border-pink-400 transition-all duration-300 group cursor-pointer">
+                        <div class="w-12 h-12 rounded-lg bg-pink-950/40 border border-pink-800/50 flex items-center justify-center mb-3 group-hover:scale-110 group-hover:border-pink-400 transition-all duration-300">
+                            <i data-lucide="shield" class="w-6 h-6 text-pink-400"></i>
+                        </div>
+                        <span class="font-orbitron font-bold text-lg text-slate-100 mb-1">Sobrevivência</span>
+                        <span class="text-xs text-indigo-300/70 text-center">Evite que a bola escape! A velocidade aumenta constantemente.</span>
+                    </button>
+
+                    <!-- Modo Caótico -->
+                    <button id="btnChaos" class="flex flex-col items-center p-5 rounded-xl border border-indigo-950 bg-indigo-950/20 hover:bg-purple-500/10 hover:border-purple-400 transition-all duration-300 group cursor-pointer">
+                        <div class="w-12 h-12 rounded-lg bg-purple-950/40 border border-purple-800/50 flex items-center justify-center mb-3 group-hover:scale-110 group-hover:border-purple-400 transition-all duration-300">
+                            <i data-lucide="flame" class="w-6 h-6 text-purple-400"></i>
+                        </div>
+                        <span class="font-orbitron font-bold text-lg text-slate-100 mb-1">Modo Caos</span>
+                        <span class="text-xs text-indigo-300/70 text-center">Power-ups aleatórios, raquetes gigantes e bolas múltiplas!</span>
+                    </button>
+                </div>
+
+                <!-- Controlos / Dicas -->
+                <div class="flex items-center gap-6 text-indigo-400/80 text-sm bg-indigo-950/20 border border-indigo-950/40 px-6 py-2.5 rounded-full">
+                    <span class="flex items-center gap-1.5"><kbd class="bg-indigo-900/40 px-2 py-0.5 rounded border border-indigo-700/50 text-xs">W</kbd> ou <kbd class="bg-indigo-900/40 px-2 py-0.5 rounded border border-indigo-700/50 text-xs">▲</kbd> Subir</span>
+                    <span class="h-4 w-px bg-indigo-900/40"></span>
+                    <span class="flex items-center gap-1.5"><kbd class="bg-indigo-900/40 px-2 py-0.5 rounded border border-indigo-700/50 text-xs">S</kbd> ou <kbd class="bg-indigo-900/40 px-2 py-0.5 rounded border border-indigo-700/50 text-xs">▼</kbd> Descer</span>
+                </div>
+            </div>
+
+            <!-- 2. ECRÃ DO JOGO (CANVAS) -->
+            <div id="gameScreen" class="absolute inset-0 hidden flex flex-col justify-between items-center p-4 z-20">
+                <!-- Marcador de Pontuação -->
+                <div class="w-full flex justify-between items-center px-8 py-2 z-30">
+                    <!-- Jogador 1 -->
+                    <div class="flex items-center gap-4">
+                        <div class="text-left">
+                            <div class="text-xs font-bold text-cyan-400 tracking-wider">JOGADOR</div>
+                            <div class="text-sm font-bold text-indigo-300">HUMANO</div>
+                        </div>
+                        <div id="p1Score" class="font-orbitron font-black text-4xl text-cyan-400 neon-glow-cyan">0</div>
+                    </div>
+
+                    <!-- Modo / Status Central -->
+                    <div class="text-center">
+                        <span id="gameModeBadge" class="text-xs font-bold font-orbitron tracking-widest bg-indigo-950 border border-indigo-800/60 text-indigo-300 px-3 py-1 rounded-full uppercase">MODO CLÁSSICO</span>
+                        <div id="survivalTimer" class="hidden text-sm font-semibold text-pink-400 neon-glow-pink mt-1">Tempo: 00:00</div>
+                    </div>
+
+                    <!-- Jogador 2 / CPU -->
+                    <div class="flex items-center gap-4">
+                        <div id="p2Score" class="font-orbitron font-black text-4xl text-pink-500 neon-glow-pink">0</div>
+                        <div class="text-right">
+                            <div class="text-xs font-bold text-pink-500 tracking-wider">OPONENTE</div>
+                            <div id="p2Name" class="text-sm font-bold text-indigo-300">MAINFRAME</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Canvas Adaptativo -->
+                <div class="relative w-full flex-grow flex items-center justify-center py-2">
+                    <canvas id="pongCanvas" class="w-full h-full max-h-[480px] bg-slate-950 border border-indigo-900/30 rounded-lg shadow-inner"></canvas>
+                </div>
+
+                <!-- Painel de Pausa / Controlos Auxiliares -->
+                <div class="w-full flex justify-between items-center px-4 py-1 z-30 text-xs text-indigo-400/80">
+                    <div>Pressione <kbd class="bg-indigo-900/40 px-1.5 py-0.5 rounded">P</kbd> ou toque para Pausar</div>
+                    <div id="activePowerup" class="font-semibold text-purple-400 neon-glow-purple hidden">NENHUM POWER-UP</div>
+                    <div>Reflexos em tempo real</div>
+                </div>
+            </div>
+
+            <!-- 3. ECRÃ DE FIM DE JOGO -->
+            <div id="gameoverScreen" class="absolute inset-0 hidden flex flex-col items-center justify-center p-6 z-20 transition-all duration-500 bg-slate-950/90">
+                <div class="text-center mb-8">
+                    <div class="w-20 h-20 rounded-full bg-pink-950/50 border border-pink-500/30 flex items-center justify-center mx-auto mb-4 shadow-[0_0_30px_rgba(236,72,153,0.3)]">
+                        <i data-lucide="trophy" class="w-10 h-10 text-pink-400"></i>
+                    </div>
+                    <h2 id="endResultTitle" class="text-4xl md:text-5xl font-black font-orbitron uppercase tracking-wider mb-2 text-pink-500 neon-glow-pink">
+                        FIM DE JOGO
+                    </h2>
+                    <p id="endResultSubtitle" class="text-indigo-300 text-lg">A IA do Mainframe prevaleceu desta vez.</p>
+                </div>
+
+                <!-- Detalhes do Jogo -->
+                <div class="bg-indigo-950/30 border border-indigo-900/40 rounded-xl px-8 py-4 mb-8 w-full max-w-sm flex justify-around text-center">
+                    <div>
+                        <div class="text-xs font-semibold text-indigo-400">Rondas Ganhas</div>
+                        <div id="statRounds" class="text-2xl font-bold font-orbitron text-cyan-400">0</div>
+                    </div>
+                    <div class="w-px bg-indigo-900/40"></div>
+                    <div>
+                        <div class="text-xs font-semibold text-indigo-400">Maior Sequência</div>
+                        <div id="statStreak" class="text-2xl font-bold font-orbitron text-purple-400">0</div>
+                    </div>
+                </div>
+
+                <!-- Ações -->
+                <div class="flex gap-4 w-full max-w-xs">
+                    <button id="btnRestart" class="flex-1 py-3 px-6 rounded-xl font-orbitron font-bold text-white bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 hover:scale-[1.02] shadow-[0_0_20px_rgba(99,102,241,0.4)] transition-all duration-300 cursor-pointer">
+                        Jogar Novamente
+                    </button>
+                    <button id="btnHome" class="py-3 px-4 rounded-xl border border-indigo-800 bg-indigo-950/40 text-indigo-300 hover:bg-indigo-900/40 hover:text-white transition-all duration-300 cursor-pointer">
+                        <i data-lucide="home" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 4. MENU DE PAUSA (OVERLAY) -->
+            <div id="pauseOverlay" class="absolute inset-0 hidden bg-slate-950/85 z-25 flex-col items-center justify-center p-6">
+                <h3 class="text-3xl font-black font-orbitron tracking-wider text-cyan-400 neon-glow-cyan mb-2">JOGO EM PAUSA</h3>
+                <p class="text-indigo-400 text-sm mb-6">Pressione qualquer tecla ou clique para continuar</p>
+                <div class="flex gap-3">
+                    <button id="btnResume" class="py-2.5 px-6 rounded-lg font-bold bg-cyan-500/20 border border-cyan-400 text-cyan-300 hover:bg-cyan-500/30 transition-all duration-200 cursor-pointer">
+                        Continuar
+                    </button>
+                    <button id="btnQuit" class="py-2.5 px-6 rounded-lg font-bold bg-pink-500/10 border border-pink-500/30 text-pink-400 hover:bg-pink-500/20 transition-all duration-200 cursor-pointer">
+                        Sair do Jogo
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Rodapé -->
+    <footer class="w-full max-w-6xl mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-2 text-xs text-indigo-400/60 z-10">
+        <div>&copy; 2026 Neon Pong Ultimate. Desenvolvido para navegadores modernos.</div>
+        <div class="flex gap-4">
+            <a href="#" class="hover:text-indigo-300 transition-colors">Termos de Uso</a>
+            <a href="#" class="hover:text-indigo-300 transition-colors">Privacidade</a>
+            <a href="https://github.com/carlos369goy/ping-pong" target="_blank" class="hover:text-cyan-400 transition-colors flex items-center gap-1">
+                <i data-lucide="github" class="w-3.5 h-3.5"></i> Repositório
+            </a>
+        </div>
+    </footer>
+
+    <!-- Lógica de Áudio e Funcionamento do Jogo -->
+    <script>
+        // Inicializar os Ícones do Lucide
+        lucide.createIcons();
+
+        // Variáveis de Configuração e Configurações de Som
+        let soundEnabled = true;
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        // Sintetizador nativo para evitar ficheiros externos partidos
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+
+                if (type === 'hit') {
+                    // Som clássico de rebater a bola
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(320, now);
+                    osc.frequency.exponentialRampToValueAtTime(150, now + 0.12);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+                    osc.start(now);
+                    osc.stop(now + 0.12);
+                } else if (type === 'point') {
+                    // Som de pontuação
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.setValueAtTime(660, now + 0.1);
+                    gain.gain.setValueAtTime(0.25, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                } else if (type === 'gameover') {
+                    // Som de fim de jogo
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, now);
+                    osc.frequency.exponentialRampToValueAtTime(55, now + 0.6);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+                    osc.start(now);
+                    osc.stop(now + 0.6);
+                } else if (type === 'powerup') {
+                    // Som para colecionar powerup
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(520, now);
+                    osc.frequency.exponentialRampToValueAtTime(1040, now + 0.2);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                    osc.start(now);
+                    osc.stop(now + 0.2);
+                }
+            } catch (error) {
+                console.warn("Erro ao iniciar áudio de forma nativa:", error);
+            }
+        }
+
+        // Alternar Configuração de Som
+        const btnSoundToggle = document.getElementById('btnSoundToggle');
+        const iconSound = document.getElementById('iconSound');
+        btnSoundToggle.addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            if (soundEnabled) {
+                iconSound.setAttribute('data-lucide', 'volume-2');
+                btnSoundToggle.classList.remove('text-slate-500', 'border-slate-800');
+                btnSoundToggle.classList.add('text-indigo-300', 'border-indigo-900/50');
+            } else {
+                iconSound.setAttribute('data-lucide', 'volume-x');
+                btnSoundToggle.classList.remove('text-indigo-300', 'border-indigo-900/50');
+                btnSoundToggle.classList.add('text-slate-500', 'border-slate-800');
+            }
+            lucide.createIcons();
+        });
+
+        // Configuração do Canvas e Mecânica do Jogo
+        const canvas = document.getElementById('pongCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Dimensões Internas Virtuais do Jogo
+        const V_WIDTH = 800;
+        const V_HEIGHT = 500;
+
+        // Estado do Jogo
+        let gameMode = 'classic'; // 'classic', 'survival', 'chaos'
+        let p1Score = 0;
+        let p2Score = 0;
+        let p1Y = 200;
+        let p2Y = 200;
+        let p1Height = 90;
+        let p2Height = 90;
+        const PADDLE_WIDTH = 12;
+        let PADDLE_SPEED = 8;
+        let gamePaused = false;
+        let animationFrameId = null;
+
+        // Estrutura das Bolas do Jogo
+        let balls = [];
+        const BALL_SIZE = 8;
+        let baseBallSpeed = 6;
+
+        // Configurações do Modo Sobrevivência
+        let survivalTime = 0;
+        let survivalInterval = null;
+        let highestSurvivalStreak = 0;
+        let currentSurvivalHits = 0;
+
+        // Configuração dos Power-ups para o Modo Caótico
+        let powerups = [];
+        let activePowerupTimer = null;
+        const POWERUP_TYPES = [
+            { id: 'enlarge', name: 'Raquete Grande', color: '#10b981', symbol: '↕' },
+            { id: 'multiball', name: 'Bolas Múltiplas', color: '#a855f7', symbol: '●' },
+            { id: 'speedup', name: 'Hiper Velocidade', color: '#f59e0b', symbol: '⚡' }
+        ];
+
+        // Teclas Pressionadas
+        const keys = {};
+
+        // Adaptar Resolução do Canvas mantendo a Proporção
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            
+            canvas.width = width;
+            canvas.height = height;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Controlos via Teclado
+        window.addEventListener('keydown', (e) => {
+            keys[e.key.toLowerCase()] = true;
+            if (e.key.toLowerCase() === 'p' && !document.getElementById('gameScreen').classList.contains('hidden')) {
+                togglePause();
+            }
+        });
+        window.addEventListener('keyup', (e) => {
+            keys[e.key.toLowerCase()] = false;
+        });
+
+        // Suporte a Toque em Ecrãs de Toque (Mobile/Tablet)
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const touchY = e.touches[0].clientY - rect.top;
+            const scaleY = V_HEIGHT / canvas.height;
+            // Centralizar a raquete na posição do toque
+            p1Y = (touchY * scaleY) - (p1Height / 2);
+            // Evitar sair das bordas do ecrã
+            if (p1Y < 0) p1Y = 0;
+            if (p1Y > V_HEIGHT - p1Height) p1Y = V_HEIGHT - p1Height;
+        }, { passive: false });
+
+        // Eventos dos Botões do Menu Principal
+        document.getElementById('btnClassic').addEventListener('click', () => startGame('classic'));
+        document.getElementById('btnSurvival').addEventListener('click', () => startGame('survival'));
+        document.getElementById('btnChaos').addEventListener('click', () => startGame('chaos'));
+
+        // Eventos de Navegação dos restantes Ecrãs
+        document.getElementById('btnRestart').addEventListener('click', () => startGame(gameMode));
+        document.getElementById('btnHome').addEventListener('click', goToMenu);
+        document.getElementById('btnResume').addEventListener('click', togglePause);
+        document.getElementById('btnQuit').addEventListener('click', goToMenu);
+        canvas.addEventListener('click', () => {
+            if (!document.getElementById('gameScreen').classList.contains('hidden')) {
+                togglePause();
+            }
+        });
+
+        // Função para Inicializar o Jogo
+        function startGame(mode) {
+            gameMode = mode;
+            p1Score = 0;
+            p2Score = 0;
+            p1Y = (V_HEIGHT / 2) - 45;
+            p2Y = (V_HEIGHT / 2) - 45;
+            p1Height = 90;
+            p2Height = 90;
+            PADDLE_SPEED = 8;
+            gamePaused = false;
+            currentSurvivalHits = 0;
+
+            // Limpar Elementos Dinâmicos do Caos
+            powerups = [];
+            if (activePowerupTimer) clearInterval(activePowerupTimer);
+            document.getElementById('activePowerup').classList.add('hidden');
+
+            // Configurar Ecrã Ativo
+            document.getElementById('menuScreen').classList.add('hidden');
+            document.getElementById('gameoverScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('hidden');
+            document.getElementById('pauseOverlay').classList.add('hidden');
+
+            const gameModeBadge = document.getElementById('gameModeBadge');
+            const survivalTimerElement = document.getElementById('survivalTimer');
+            const p2Name = document.getElementById('p2Name');
+
+            // Ajustes de Interface consoante o Modo de Jogo
+            if (mode === 'classic') {
+                gameModeBadge.innerText = 'Modo Clássico';
+                gameModeBadge.className = 'text-xs font-bold font-orbitron tracking-widest bg-cyan-950 border border-cyan-800/60 text-cyan-300 px-3 py-1 rounded-full uppercase';
+                survivalTimerElement.classList.add('hidden');
+                p2Name.innerText = 'MAINFRAME';
+                createBall();
+            } else if (mode === 'survival') {
+                gameModeBadge.innerText = 'Modo Sobrevivência';
+                gameModeBadge.className = 'text-xs font-bold font-orbitron tracking-widest bg-pink-950 border border-pink-800/60 text-pink-300 px-3 py-1 rounded-full uppercase';
+                survivalTimerElement.classList.remove('hidden');
+                p2Name.innerText = 'BARREIRA';
+                p2Score = 0;
+                
+                survivalTime = 0;
+                updateSurvivalTimerDisplay();
+                if (survivalInterval) clearInterval(survivalInterval);
+                survivalInterval = setInterval(() => {
+                    if (!gamePaused) {
+                        survivalTime++;
+                        updateSurvivalTimerDisplay();
+                    }
+                }, 1000);
+
+                createBall();
+            } else if (mode === 'chaos') {
+                gameModeBadge.innerText = 'Modo Caótico';
+                gameModeBadge.className = 'text-xs font-bold font-orbitron tracking-widest bg-purple-950 border border-purple-800/60 text-purple-300 px-3 py-1 rounded-full uppercase';
+                survivalTimerElement.classList.add('hidden');
+                p2Name.innerText = 'VÓRTICE IA';
+                createBall();
+
+                // Ciclo de Geração de Power-ups
+                activePowerupTimer = setInterval(() => {
+                    if (!gamePaused && powerups.length < 2) {
+                        generatePowerup();
+                    }
+                }, 7000);
+            }
+
+            updateScoreUI();
+            
+            // Iniciar o Loop Principal
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        // Criar uma Nova Bola
+        function createBall(x = V_WIDTH / 2, y = V_HEIGHT / 2, customSpeedX = null, customSpeedY = null) {
+            const speed = (gameMode === 'survival') ? 7 : baseBallSpeed;
+            const angle = (Math.random() * (Math.PI / 4)) - (Math.PI / 8); // Ângulo suave de lançamento
+            const direction = Math.random() > 0.5 ? 1 : -1;
+
+            balls.push({
+                x: x,
+                y: y,
+                vx: customSpeedX !== null ? customSpeedX : direction * speed * Math.cos(angle),
+                vy: customSpeedY !== null ? customSpeedY : speed * Math.sin(angle),
+                color: '#ffffff',
+                trail: []
+            });
+        }
+
+        // Atualizar Indicador Visual de Tempo da Sobrevivência
+        function updateSurvivalTimerDisplay() {
+            const mins = String(Math.floor(survivalTime / 60)).padStart(2, '0');
+            const secs = String(survivalTime % 60).padStart(2, '0');
+            document.getElementById('survivalTimer').innerText = `Tempo: ${mins}:${secs}`;
+        }
+
+        // Atualizar Marcadores nos Ecrãs
+        function updateScoreUI() {
+            document.getElementById('p1Score').innerText = p1Score;
+            if (gameMode === 'survival') {
+                document.getElementById('p2Score').innerText = currentSurvivalHits;
+            } else {
+                document.getElementById('p2Score').innerText = p2Score;
+            }
+        }
+
+        // Pausar e Retomar o Jogo
+        function togglePause() {
+            gamePaused = !gamePaused;
+            const pauseOverlay = document.getElementById('pauseOverlay');
+            if (gamePaused) {
+                pauseOverlay.classList.remove('hidden');
+                pauseOverlay.classList.add('flex');
+            } else {
+                pauseOverlay.classList.add('hidden');
+                pauseOverlay.classList.remove('flex');
+            }
+        }
+
+        // Voltar ao Menu Principal
+        function goToMenu() {
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            if (survivalInterval) clearInterval(survivalInterval);
+            if (activePowerupTimer) clearInterval(activePowerupTimer);
+            
+            balls = [];
+            powerups = [];
+
+            document.getElementById('gameScreen').classList.add('hidden');
+            document.getElementById('gameoverScreen').classList.add('hidden');
+            document.getElementById('pauseOverlay').classList.add('hidden');
+            document.getElementById('menuScreen').classList.remove('hidden');
+        }
+
+        // Geração de Itens de Bónus (Power-ups)
+        function generatePowerup() {
+            const type = POWERUP_TYPES[Math.floor(Math.random() * POWERUP_TYPES.length)];
+            powerups.push({
+                x: (V_WIDTH * 0.3) + Math.random() * (V_WIDTH * 0.4), // Meio do ecrã
+                y: 50 + Math.random() * (V_HEIGHT - 100),
+                radius: 18,
+                type: type,
+                pulse: 0
+            });
+        }
+
+        // Finalizar a Partida
+        function endGame(winnerName) {
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            if (survivalInterval) clearInterval(survivalInterval);
+            if (activePowerupTimer) clearInterval(activePowerupTimer);
+
+            playSound('gameover');
+
+            // Esconder ecrã de jogo e exibir o de fim do jogo
+            document.getElementById('gameScreen').classList.add('hidden');
+            document.getElementById('gameoverScreen').classList.remove('hidden');
+
+            const endTitle = document.getElementById('endResultTitle');
+            const endSubtitle = document.getElementById('endResultSubtitle');
+
+            if (gameMode === 'survival') {
+                endTitle.innerText = "SOBREVIVESTE!";
+                endTitle.className = "text-4xl md:text-5xl font-black font-orbitron uppercase tracking-wider mb-2 text-pink-500 neon-glow-pink";
+                endSubtitle.innerText = `Mantiveste a bola em jogo durante ${survivalTime} segundos!`;
+                
+                document.getElementById('statRounds').innerText = `${survivalTime}s`;
+                document.getElementById('statStreak').innerText = currentSurvivalHits;
+                
+                if (currentSurvivalHits > highestSurvivalStreak) {
+                    highestSurvivalStreak = currentSurvivalHits;
+                }
+            } else {
+                if (winnerName === 'player1') {
+                    endTitle.innerText = "VITÓRIA!";
+                    endTitle.className = "text-4xl md:text-5xl font-black font-orbitron uppercase tracking-wider mb-2 text-cyan-400 neon-glow-cyan";
+                    endSubtitle.innerText = "Conseguiste superar os sistemas cibernéticos.";
+                } else {
+                    endTitle.innerText = "DERROTA";
+                    endTitle.className = "text-4xl md:text-5xl font-black font-orbitron uppercase tracking-wider mb-2 text-pink-500 neon-glow-pink";
+                    endSubtitle.innerText = "A Inteligência Artificial dominou a partida.";
+                }
+                
+                document.getElementById('statRounds').innerText = p1Score;
+                document.getElementById('statStreak').innerText = Math.max(p1Score, p2Score);
+            }
+
+            balls = [];
+            powerups = [];
+        }
+
+        // Loop Principal do Jogo (Física e Desenho)
+        function gameLoop() {
+            if (!gamePaused) {
+                updatePhysics();
+            }
+            renderGame();
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        // Atualizar Elementos Físicos e Movimentos
+        function updatePhysics() {
+            // Movimentação da Raquete do Jogador (Esquerda)
+            if (keys['w'] || keys['arrowup']) {
+                p1Y -= PADDLE_SPEED;
+                if (p1Y < 0) p1Y = 0;
+            }
+            if (keys['s'] || keys['arrowdown']) {
+                p1Y += PADDLE_SPEED;
+                if (p1Y > V_HEIGHT - p1Height) p1Y = V_HEIGHT - p1Height;
+            }
+
+            // Movimentação da Raquete Oponente / IA (Direita)
+            if (balls.length > 0) {
+                if (gameMode === 'survival') {
+                    // No modo sobrevivência, a barreira direita cobre o ecrã completo para refletir
+                    p2Y = 0;
+                    p2Height = V_HEIGHT;
+                } else {
+                    // IA Comportamental inteligente que rastreia a bola mais próxima
+                    let targetBall = balls[0];
+                    let minDistanceX = V_WIDTH;
+
+                    balls.forEach(b => {
+                        const distX = V_WIDTH - b.x;
+                        if (distX < minDistanceX && b.vx > 0) {
+                            minDistanceX = distX;
+                            targetBall = b;
+                        }
+                    });
+
+                    const targetCenter = targetBall.y;
+                    const paddleCenter = p2Y + (p2Height / 2);
+                    
+                    // IA com velocidade de reação adaptativa
+                    const diff = targetCenter - paddleCenter;
+                    const aiSpeed = gameMode === 'chaos' ? 6.5 : 5.8;
+
+                    if (Math.abs(diff) > 10) {
+                        if (diff > 0) {
+                            p2Y += aiSpeed;
+                        } else {
+                            p2Y -= aiSpeed;
+                        }
+                    }
+
+                    // Impedir raquete de fugir dos limites
+                    if (p2Y < 0) p2Y = 0;
+                    if (p2Y > V_HEIGHT - p2Height) p2Y = V_HEIGHT - p2Height;
+                }
+            }
+
+            // Movimentação de cada bola ativa
+            for (let i = balls.length - 1; i >= 0; i--) {
+                const ball = balls[i];
+
+                // Rasto luminoso
+                ball.trail.push({ x: ball.x, y: ball.y });
+                if (ball.trail.length > 10) ball.trail.shift();
+
+                // Integração de movimento
+                ball.x += ball.vx;
+                ball.y += ball.vy;
+
+                // Colisão com teto e chão
+                if (ball.y - BALL_SIZE <= 0) {
+                    ball.y = BALL_SIZE;
+                    ball.vy = -ball.vy;
+                    playSound('hit');
+                } else if (ball.y + BALL_SIZE >= V_HEIGHT) {
+                    ball.y = V_HEIGHT - BALL_SIZE;
+                    ball.vy = -ball.vy;
+                    playSound('hit');
+                }
+
+                // Colisão com Raquete Esquerda (Jogador)
+                if (ball.vx < 0 && ball.x - BALL_SIZE <= 15 + PADDLE_WIDTH && ball.x - BALL_SIZE >= 15) {
+                    if (ball.y >= p1Y && ball.y <= p1Y + p1Height) {
+                        ball.x = 15 + PADDLE_WIDTH + BALL_SIZE;
+                        
+                        // Determinar desvio em virtude do local de impacto
+                        const relativeHit = (ball.y - (p1Y + p1Height / 2)) / (p1Height / 2);
+                        const angle = relativeHit * (Math.PI / 3);
+                        const currentSpeed = Math.sqrt(ball.vx * ball.vx + ball.vy * ball.vy) * 1.05; // Pequeno acréscimo de velocidade
+
+                        ball.vx = currentSpeed * Math.cos(angle);
+                        ball.vy = currentSpeed * Math.sin(angle);
+                        
+                        if (gameMode === 'survival') {
+                            currentSurvivalHits++;
+                            updateScoreUI();
+                        }
+                        
+                        playSound('hit');
+                    }
+                }
+
+                // Colisão com Raquete Direita (IA / Barreira)
+                if (ball.vx > 0 && ball.x + BALL_SIZE >= V_WIDTH - 15 - PADDLE_WIDTH && ball.x + BALL_SIZE <= V_WIDTH - 15) {
+                    if (ball.y >= p2Y && ball.y <= p2Y + p2Height) {
+                        ball.x = V_WIDTH - 15 - PADDLE_WIDTH - BALL_SIZE;
+
+                        const relativeHit = (ball.y - (p2Y + p2Height / 2)) / (p2Height / 2);
+                        const angle = relativeHit * (Math.PI / 3);
+                        const currentSpeed = Math.sqrt(ball.vx * ball.vx + ball.vy * ball.vy) * 1.05;
+
+                        ball.vx = -currentSpeed * Math.cos(angle);
+                        ball.vy = currentSpeed * Math.sin(angle);
+                        
+                        playSound('hit');
+                    }
+                }
+
+                // Deteção de Power-ups coletados (Apenas no Modo Caos)
+                if (gameMode === 'chaos') {
+                    for (let j = powerups.length - 1; j >= 0; j--) {
+                        const pw = powerups[j];
+                        const dist = Math.hypot(ball.x - pw.x, ball.y - pw.y);
+                        if (dist <= BALL_SIZE + pw.radius) {
+                            applyPowerup(pw.type);
+                            playSound('powerup');
+                            powerups.splice(j, 1);
+                        }
+                    }
+                }
+
+                // Fora dos limites laterais (Pontuação ou Fim de Jogo)
+                if (ball.x < 0) {
+                    // Ponto para Oponente
+                    balls.splice(i, 1);
+                    if (gameMode === 'survival') {
+                        endGame('p2');
+                    } else {
+                        p2Score++;
+                        updateScoreUI();
+                        playSound('point');
+                        if (p2Score >= 7) {
+                            endGame('mainframe');
+                        } else {
+                            if (balls.length === 0) createBall();
+                        }
+                    }
+                } else if (ball.x > V_WIDTH) {
+                    // Ponto do Jogador
+                    balls.splice(i, 1);
+                    if (gameMode !== 'survival') {
+                        p1Score++;
+                        updateScoreUI();
+                        playSound('point');
+                        if (p1Score >= 7) {
+                            endGame('player1');
+                        } else {
+                            if (balls.length === 0) createBall();
+                        }
+                    }
+                }
+            }
+
+            // Garantir que existe sempre pelo menos uma bola ativa
+            if (balls.length === 0 && !document.getElementById('gameScreen').classList.contains('hidden')) {
+                createBall();
+            }
+        }
+
+        // Aplicar Bónus de Power-up no Modo Caótico
+        function applyPowerup(type) {
+            const label = document.getElementById('activePowerup');
+            label.innerText = `Power-up: ${type.name}`;
+            label.classList.remove('hidden');
+
+            if (type.id === 'enlarge') {
+                p1Height = 150;
+                setTimeout(() => {
+                    p1Height = 90;
+                    label.classList.add('hidden');
+                }, 8000);
+            } else if (type.id === 'multiball') {
+                createBall(V_WIDTH / 2, V_HEIGHT / 2, 5, 4);
+                createBall(V_WIDTH / 2, V_HEIGHT / 2, -5, -4);
+                setTimeout(() => {
+                    label.classList.add('hidden');
+                }, 5000);
+            } else if (type.id === 'speedup') {
+                balls.forEach(b => {
+                    b.vx *= 1.4;
+                    b.vy *= 1.4;
+                });
+                setTimeout(() => {
+                    label.classList.add('hidden');
+                }, 6000);
+            }
+        }
+
+        // Renderização Visual do Jogo (Canvas)
+        function renderGame() {
+            // Limpeza e Escala Relativa para o Canvas Dinâmico
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            ctx.scale(canvas.width / V_WIDTH, canvas.height / V_HEIGHT);
+
+            // Desenhar Linha Divisória de Campo
+            ctx.strokeStyle = 'rgba(79, 70, 229, 0.25)';
+            ctx.lineWidth = 4;
+            ctx.setLineDash([15, 15]);
+            ctx.beginPath();
+            ctx.moveTo(V_WIDTH / 2, 0);
+            ctx.lineTo(V_WIDTH / 2, V_HEIGHT);
+            ctx.stroke();
+            ctx.setLineDash([]); // Limpar tracejado
+
+            // Desenhar Power-ups no Arena (Modo Caos)
+            if (gameMode === 'chaos') {
+                powerups.forEach(pw => {
+                    pw.pulse += 0.05;
+                    const glowRadius = pw.radius + Math.sin(pw.pulse) * 4;
+
+                    // Aura Luminosa
+                    ctx.save();
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = pw.type.color;
+                    ctx.fillStyle = `${pw.type.color}22`;
+                    ctx.beginPath();
+                    ctx.arc(pw.x, pw.y, glowRadius, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Núcleo do Powerup
+                    ctx.strokeStyle = pw.type.color;
+                    ctx.lineWidth = 2.5;
+                    ctx.beginPath();
+                    ctx.arc(pw.x, pw.y, pw.radius, 0, Math.PI * 2);
+                    ctx.stroke();
+
+                    // Letra / Símbolo Interno
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 16px "Orbitron", sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(pw.type.symbol, pw.x, pw.y + 1);
+                    ctx.restore();
+                });
+            }
+
+            // Desenhar Todas as Bolas Ativas
+            balls.forEach(ball => {
+                // Rasto Luminoso (Efeito Glow)
+                if (ball.trail.length > 0) {
+                    ball.trail.forEach((t, index) => {
+                        ctx.save();
+                        ctx.globalAlpha = (index / ball.trail.length) * 0.35;
+                        ctx.fillStyle = ball.color;
+                        ctx.beginPath();
+                        ctx.arc(t.x, t.y, BALL_SIZE * 0.8, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.restore();
+                    });
+                }
+                
+                // Bola Principal
+                ctx.save();
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = '#ffffff';
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(ball.x, ball.y, BALL_SIZE, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+
+            // Raquete 1 (Esquerda - Cyan)
+            ctx.save();
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#22d3ee';
+            const p1Grad = ctx.createLinearGradient(15, p1Y, 15 + PADDLE_WIDTH, p1Y);
+            p1Grad.addColorStop(0, '#22d3ee');
+            p1Grad.addColorStop(1, '#06b6d4');
+            ctx.fillStyle = p1Grad;
+            ctx.beginPath();
+            ctx.roundRect(15, p1Y, PADDLE_WIDTH, p1Height, 4);
+            ctx.fill();
+            ctx.restore();
+
+            // Raquete 2 (Direita - Pink)
+            ctx.save();
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#ec4899';
+            const p2Grad = ctx.createLinearGradient(V_WIDTH - 15 - PADDLE_WIDTH, p2Y, V_WIDTH - 15, p2Y);
+            p2Grad.addColorStop(0, '#ec4899');
+            p2Grad.addColorStop(1, '#f43f5e');
+            ctx.fillStyle = p2Grad;
+            ctx.beginPath();
+            if (gameMode === 'survival') {
+                // Linha completa vertical estilo grelha laser
+                ctx.roundRect(V_WIDTH - 15 - PADDLE_WIDTH, p2Y, PADDLE_WIDTH, p2Height, 0);
+            } else {
+                ctx.roundRect(V_WIDTH - 15 - PADDLE_WIDTH, p2Y, PADDLE_WIDTH, p2Height, 4);
+            }
+            ctx.fill();
+            ctx.restore();
+
+            ctx.restore(); // Restaurar proporções iniciais
+        }
+    </script>
+</body>
+</html>
