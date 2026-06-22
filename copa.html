@@ -1,0 +1,1835 @@
+import React, { useState, useMemo, useEffect } from 'react';
+import { 
+  Search, 
+  Filter, 
+  TrendingUp, 
+  Award, 
+  Users, 
+  PlusCircle, 
+  User, 
+  Calendar, 
+  ChevronRight, 
+  Grid, 
+  List, 
+  SlidersHorizontal, 
+  X, 
+  RotateCcw, 
+  Edit3, 
+  Trash2, 
+  Briefcase, 
+  Check,
+  Dribbble,
+  Info,
+  Activity,
+  Tv,
+  Zap,
+  Bell
+} from 'lucide-react';
+
+// Dados iniciais expandidos com estrelas globais da Copa do Mundo 2026
+const INITIAL_PLAYERS = [
+  {
+    id: "1",
+    nome: "Vinícius José Paixão de Oliveira Júnior",
+    nomeCurto: "Vini Jr.",
+    selecao: "Brasil",
+    posicao: "Avançado",
+    posicaoEspecifica: "Extremo Esquerdo",
+    idade: 25,
+    clube: "Real Madrid",
+    ligaClube: "La Liga (Espanha)",
+    valorMercado: 180, // em milhões de euros
+    numeroCamisa: 7,
+    copasDisputadas: "2022, 2026",
+    pePreferido: "Direito",
+    estatisticas: { golos: 2, assistencias: 1, partidas: 2, notaMedia: 8.4 },
+    atributos: { ritmo: 97, finalizacao: 88, passe: 84, dribles: 95, defesa: 38, fisico: 75 },
+    destaque: true,
+    atualizadoRecentemente: false
+  },
+  {
+    id: "2",
+    nome: "Kylian Mbappé Lottin",
+    nomeCurto: "Kylian Mbappé",
+    selecao: "França",
+    posicao: "Avançado",
+    posicaoEspecifica: "Extremo / Ponta de Lança",
+    idade: 27,
+    clube: "Real Madrid",
+    ligaClube: "La Liga (Espanha)",
+    valorMercado: 190,
+    numeroCamisa: 10,
+    copasDisputadas: "2018, 2022, 2026",
+    pePreferido: "Direito",
+    estatisticas: { golos: 3, assistencias: 1, partidas: 2, notaMedia: 8.7 },
+    atributos: { ritmo: 98, finalizacao: 94, passe: 83, dribles: 92, defesa: 36, fisico: 78 },
+    destaque: true,
+    atualizadoRecentemente: false
+  },
+  {
+    id: "3",
+    nome: "Lionel Andrés Messi Cuccittini",
+    nomeCurto: "Lionel Messi",
+    selecao: "Argentina",
+    posicao: "Avançado",
+    posicaoEspecifica: "Médio Ofensivo / Extremo",
+    idade: 39,
+    clube: "Inter Miami",
+    ligaClube: "MLS (Estados Unidos)",
+    valorMercado: 30,
+    numeroCamisa: 10,
+    copasDisputadas: "2006, 2010, 2014, 2018, 2022, 2026",
+    pePreferido: "Esquerdo",
+    estatisticas: { golos: 1, assistencias: 2, partidas: 2, notaMedia: 8.2 },
+    atributos: { ritmo: 75, finalizacao: 90, passe: 94, dribles: 93, defesa: 32, fisico: 64 },
+    destaque: true,
+    atualizadoRecentemente: false
+  },
+  {
+    id: "4",
+    nome: "Cristiano Ronaldo dos Santos Aveiro",
+    nomeCurto: "Cristiano Ronaldo",
+    selecao: "Portugal",
+    posicao: "Avançado",
+    posicaoEspecifica: "Ponta de Lança",
+    idade: 41,
+    clube: "Al Nassr",
+    ligaClube: "Saudi Pro League",
+    valorMercado: 15,
+    numeroCamisa: 7,
+    copasDisputadas: "2006, 2010, 2014, 2018, 2022, 2026",
+    pePreferido: "Direito",
+    estatisticas: { golos: 1, assistencias: 0, partidas: 1, notaMedia: 7.5 },
+    atributos: { ritmo: 79, finalizacao: 89, passe: 78, dribles: 80, defesa: 29, fisico: 77 },
+    destaque: true,
+    atualizadoRecentemente: false
+  },
+  {
+    id: "5",
+    nome: "Bruno Miguel Borges Fernandes",
+    nomeCurto: "Bruno Fernandes",
+    selecao: "Portugal",
+    posicao: "Médio",
+    posicaoEspecifica: "Médio Ofensivo",
+    idade: 31,
+    clube: "Manchester United",
+    ligaClube: "Premier League (Inglaterra)",
+    valorMercado: 75,
+    numeroCamisa: 8,
+    copasDisputadas: "2018, 2022, 2026",
+    pePreferido: "Direito",
+    estatisticas: { golos: 1, assistencias: 3, partidas: 2, notaMedia: 8.5 },
+    atributos: { ritmo: 75, finalizacao: 84, passe: 90, dribles: 83, defesa: 68, fisico: 77 },
+    destaque: true,
+    atualizadoRecentemente: false
+  },
+  {
+    id: "6",
+    nome: "Jude Victor William Bellingham",
+    nomeCurto: "Jude Bellingham",
+    selecao: "Inglaterra",
+    posicao: "Médio",
+    posicaoEspecifica: "Médio Ofensivo",
+    idade: 22,
+    clube: "Real Madrid",
+    ligaClube: "La Liga (Espanha)",
+    valorMercado: 150,
+    numeroCamisa: 10,
+    copasDisputadas: "2022, 2026",
+    pePreferido: "Direito",
+    estatisticas: { golos: 1, assistencias: 1, partidas: 2, notaMedia: 8.1 },
+    atributos: { ritmo: 82, finalizacao: 84, passe: 88, dribles: 89, defesa: 78, fisico: 84 },
+    destaque: true,
+    atualizadoRecentemente: false
+  },
+  {
+    id: "7",
+    nome: "Lamine Yamal Nasraoui Ebana",
+    nomeCurto: "Lamine Yamal",
+    selecao: "Espanha",
+    posicao: "Avançado",
+    posicaoEspecifica: "Extremo Direito",
+    idade: 18,
+    clube: "Barcelona",
+    ligaClube: "La Liga (Espanha)",
+    valorMercado: 140,
+    numeroCamisa: 19,
+    copasDisputadas: "2026",
+    pePreferido: "Esquerdo",
+    estatisticas: { golos: 2, assistencias: 2, partidas: 2, notaMedia: 8.6 },
+    atributos: { ritmo: 93, finalizacao: 84, passe: 86, dribles: 94, defesa: 40, fisico: 68 },
+    destaque: true,
+    atualizadoRecentemente: false
+  },
+  {
+    id: "8",
+    nome: "Rodrigo Hernández Cascante",
+    nomeCurto: "Rodri",
+    selecao: "Espanha",
+    posicao: "Médio",
+    posicaoEspecifica: "Médio Defensivo",
+    idade: 29,
+    clube: "Manchester City",
+    ligaClube: "Premier League (Inglaterra)",
+    valorMercado: 120,
+    numeroCamisa: 16,
+    copasDisputadas: "2022, 2026",
+    pePreferido: "Direito",
+    estatisticas: { golos: 0, assistencias: 1, partidas: 2, notaMedia: 8.3 },
+    atributos: { ritmo: 68, finalizacao: 76, passe: 89, dribles: 82, defesa: 88, fisico: 85 },
+    destaque: false,
+    atualizadoRecentemente: false
+  },
+  {
+    id: "9",
+    nome: "Florian Richard Wirtz",
+    nomeCurto: "Florian Wirtz",
+    selecao: "Alemanha",
+    posicao: "Médio",
+    posicaoEspecifica: "Médio Ofensivo",
+    idade: 23,
+    clube: "Bayer Leverkusen",
+    ligaClube: "Bundesliga (Alemanha)",
+    valorMercado: 130,
+    numeroCamisa: 10,
+    copasDisputadas: "2026",
+    pePreferido: "Direito",
+    estatisticas: { golos: 1, assistencias: 2, partidas: 2, notaMedia: 8.2 },
+    atributos: { ritmo: 84, finalizacao: 82, passe: 90, dribles: 91, defesa: 52, fisico: 71 },
+    destaque: true,
+    atualizadoRecentemente: false
+  },
+  {
+    id: "10",
+    nome: "William Alain André Gabriel Saliba",
+    nomeCurto: "William Saliba",
+    selecao: "França",
+    posicao: "Defesa",
+    posicaoEspecifica: "Defesa Central",
+    idade: 25,
+    clube: "Arsenal",
+    ligaClube: "Premier League (Inglaterra)",
+    valorMercado: 90,
+    numeroCamisa: 4,
+    copasDisputadas: "2022, 2026",
+    pePreferido: "Direito",
+    estatisticas: { golos: 0, assistencias: 0, partidas: 2, notaMedia: 8.0 },
+    atributos: { ritmo: 83, finalizacao: 41, passe: 76, dribles: 78, defesa: 90, fisico: 85 },
+    destaque: false,
+    atualizadoRecentemente: false
+  },
+  {
+    id: "11",
+    nome: "Emiliano Martínez Romero",
+    nomeCurto: "Dibu Martínez",
+    selecao: "Argentina",
+    posicao: "Guarda-redes",
+    posicaoEspecifica: "Guarda-redes",
+    idade: 33,
+    clube: "Aston Villa",
+    ligaClube: "Premier League (Inglaterra)",
+    valorMercado: 28,
+    numeroCamisa: 23,
+    copasDisputadas: "2022, 2026",
+    pePreferido: "Direito",
+    estatisticas: { golos: 0, assistencias: 0, partidas: 2, notaMedia: 8.1 },
+    atributos: { ritmo: 84, finalizacao: 80, passe: 81, dribles: 86, defesa: 45, fisico: 83 },
+    destaque: false,
+    atualizadoRecentemente: false
+  },
+  {
+    id: "12",
+    nome: "Kaoru Mitoma",
+    nomeCurto: "Kaoru Mitoma",
+    selecao: "Japão",
+    posicao: "Avançado",
+    posicaoEspecifica: "Extremo Esquerdo",
+    idade: 29,
+    clube: "Brighton & Hove Albion",
+    ligaClube: "Premier League (Inglaterra)",
+    valorMercado: 45,
+    numeroCamisa: 7,
+    copasDisputadas: "2022, 2026",
+    pePreferido: "Direito",
+    estatisticas: { golos: 1, assistencias: 2, partidas: 2, notaMedia: 7.9 },
+    atributos: { ritmo: 90, finalizacao: 76, passe: 79, dribles: 93, defesa: 55, fisico: 68 },
+    destaque: false,
+    atualizadoRecentemente: false
+  },
+  {
+    id: "13",
+    nome: "Achraf Hakimi Mouh",
+    nomeCurto: "Achraf Hakimi",
+    selecao: "Marrocos",
+    posicao: "Defesa",
+    posicaoEspecifica: "Lateral Direito",
+    idade: 27,
+    clube: "Paris Saint-Germain",
+    ligaClube: "Ligue 1 (França)",
+    valorMercado: 68,
+    numeroCamisa: 2,
+    copasDisputadas: "2018, 2022, 2026",
+    pePreferido: "Direito",
+    estatisticas: { golos: 0, assistencias: 1, partidas: 2, notaMedia: 8.0 },
+    atributos: { ritmo: 95, finalizacao: 74, passe: 82, dribles: 84, defesa: 78, fisico: 80 },
+    destaque: false,
+    atualizadoRecentemente: false
+  },
+  {
+    id: "14",
+    nome: "Federico Chiesa",
+    nomeCurto: "Federico Chiesa",
+    selecao: "Itália",
+    posicao: "Avançado",
+    posicaoEspecifica: "Extremo",
+    idade: 28,
+    clube: "Liverpool",
+    ligaClube: "Premier League (Inglaterra)",
+    valorMercado: 35,
+    numeroCamisa: 14,
+    copasDisputadas: "2026",
+    pePreferido: "Direito",
+    estatisticas: { golos: 1, assistencias: 0, partidas: 2, notaMedia: 7.7 },
+    atributos: { ritmo: 89, finalizacao: 80, passe: 75, dribles: 86, defesa: 42, fisico: 72 },
+    destaque: false,
+    atualizadoRecentemente: false
+  },
+  {
+    id: "15",
+    nome: "Erling Braut Haaland",
+    nomeCurto: "Erling Haaland",
+    selecao: "Noruega",
+    posicao: "Avançado",
+    posicaoEspecifica: "Ponta de Lança",
+    idade: 25,
+    clube: "Manchester City",
+    ligaClube: "Premier League (Inglaterra)",
+    valorMercado: 180,
+    numeroCamisa: 9,
+    copasDisputadas: "2026",
+    pePreferido: "Esquerdo",
+    estatisticas: { golos: 4, assistencias: 0, partidas: 2, notaMedia: 8.9 },
+    atributos: { ritmo: 89, finalizacao: 96, passe: 66, dribles: 80, defesa: 45, fisico: 88 },
+    destaque: true,
+    atualizadoRecentemente: false
+  }
+];
+
+// Dados dos Jogos Atuais com suporte a SIMULAÇÃO DE JOGO EM TEMPO REAL
+const INITIAL_MATCHES = [
+  { id: 1, home: "Argentina", away: "Áustria", homeScore: 1, awayScore: 0, stage: "Fase de Grupos (Grupo J)", status: "LIVE", minute: 64, date: "Hoje, 22/06/2026", stadium: "Estádio de Dallas, Texas", events: ["6' Golo de L. Messi (Ass: Di María)"] },
+  { id: 2, home: "França", away: "Iraque", homeScore: 2, awayScore: 1, stage: "Fase de Grupos (Grupo I)", status: "LIVE", minute: 42, date: "Hoje, 22/06/2026", stadium: "Estádio de Filadélfia, Pensilvânia", events: ["12' Golo de K. Mbappé", "31' Golo de H. Ali", "39' Golo de W. Saliba (Ass: Antoine Griezmann)"] },
+  { id: 3, home: "Portugal", away: "Marrocos", homeScore: 0, awayScore: 0, stage: "Fase de Grupos (Grupo A)", status: "UPCOMING", minute: 0, date: "Hoje, 19:00", stadium: "MetLife Stadium, Nova Iorque", events: [] },
+  { id: 4, home: "Holanda", away: "Suécia", homeScore: 5, awayScore: 1, stage: "Fase de Grupos (Grupo F)", status: "FINISHED", minute: 90, date: "20/06/2026", stadium: "Estádio de Houston, Texas", events: [] },
+  { id: 5, home: "Alemanha", away: "Costa do Marfim", homeScore: 2, awayScore: 1, stage: "Fase de Grupos (Grupo E)", status: "FINISHED", minute: 90, date: "20/06/2026", stadium: "Estádio de Toronto, Canadá", events: [] },
+  { id: 6, home: "Uruguai", away: "Cabo Verde", homeScore: 2, awayScore: 2, stage: "Fase de Grupos (Grupo H)", status: "FINISHED", minute: 90, date: "21/06/2026", stadium: "Estádio de Miami, Flórida", events: [] },
+  { id: 7, home: "Espanha", away: "Arábia Saudita", homeScore: 4, awayScore: 0, stage: "Fase de Grupos (Grupo H)", status: "FINISHED", minute: 90, date: "21/06/2026", stadium: "Estádio de Atlanta, Geórgia", events: [] }
+];
+
+export default function App() {
+  const [players, setPlayers] = useState(INITIAL_PLAYERS);
+  const [matches, setMatches] = useState(INITIAL_MATCHES);
+  const [notifications, setNotifications] = useState([
+    { id: "init-1", text: "Sistema de Sincronização Ativo! Jogos simulam eventos e atualizam as fichas dos jogadores em direto.", timestamp: "Agora" }
+  ]);
+  const [activeTab, setActiveTab] = useState('explorador'); // 'explorador' | 'analytics' | 'gerenciamento' | 'jogos'
+  const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'table'
+  
+  // Estados de Filtro
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCountry, setSelectedCountry] = useState('Todos');
+  const [selectedPosition, setSelectedPosition] = useState('Todos');
+  const [selectedAgeGroup, setSelectedAgeGroup] = useState('Todos');
+  const [selectedSort, setSelectedSort] = useState('notaMedia_desc');
+
+  // Estado do modal de visualização de detalhes do jogador
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
+
+  // Estado de edição de jogador
+  const [isEditing, setIsEditing] = useState(null);
+
+  // Formulário para novo jogador
+  const [newPlayer, setNewPlayer] = useState({
+    nome: '',
+    nomeCurto: '',
+    selecao: 'Brasil',
+    posicao: 'Avançado',
+    posicaoEspecifica: '',
+    idade: 24,
+    clube: '',
+    ligaClube: 'Outra',
+    valorMercado: 50,
+    numeroCamisa: 10,
+    copasDisputadas: '2026',
+    pePreferido: 'Direito',
+    estatisticas: { golos: 0, assistencias: 0, partidas: 0, notaMedia: 7.0 },
+    atributos: { ritmo: 80, finalizacao: 75, passe: 75, dribles: 80, defesa: 50, fisico: 75 },
+    destaque: false
+  });
+
+  // SIMULAÇÃO EM TEMPO REAL: Atualização dos jogos e alteração das fichas técnicas de jogadores em direto
+  useEffect(() => {
+    const timer = setInterval(() => {
+      // 1. Processar e fazer evoluir os jogos ao vivo
+      setMatches(prevMatches => {
+        let isUpcomingStarted = false;
+        let startedMatchId = null;
+
+        const updated = prevMatches.map(match => {
+          // Iniciar um jogo UPCOMING aleatoriamente para simular rotação realista de jogos
+          if (match.status === 'UPCOMING' && Math.random() < 0.15 && !isUpcomingStarted) {
+            isUpcomingStarted = true;
+            startedMatchId = match.id;
+            
+            // Adicionar notificação
+            setNotifications(prev => [
+              { id: crypto.randomUUID(), text: `🚨 COMEÇOU! O jogo ${match.home} vs ${match.away} iniciou oficialmente!`, timestamp: "Em Direto" },
+              ...prev.slice(0, 4)
+            ]);
+
+            return {
+              ...match,
+              status: 'LIVE',
+              minute: 1,
+              homeScore: 0,
+              awayScore: 0,
+              events: ["1' Apito Inicial! A partida começou."]
+            };
+          }
+
+          if (match.status === 'LIVE') {
+            const nextMinute = match.minute + 2; // Avança o relógio
+            
+            if (nextMinute >= 90) {
+              setNotifications(prev => [
+                { id: crypto.randomUUID(), text: `🏁 FIM DO JOGO: ${match.home} ${match.homeScore} - ${match.awayScore} ${match.away.toUpperCase()}`, timestamp: "Terminado" },
+                ...prev.slice(0, 4)
+              ]);
+              return {
+                ...match,
+                minute: 90,
+                status: 'FINISHED'
+              };
+            }
+
+            // Probabilidade de golo
+            const goloChance = Math.random();
+            let newHomeScore = match.homeScore;
+            let newAwayScore = match.awayScore;
+            let newEvents = [...match.events];
+
+            if (goloChance < 0.14) { // Golo marcado
+              const isHome = Math.random() > 0.45;
+              const scoringTeam = isHome ? match.home : match.away;
+              
+              if (isHome) {
+                newHomeScore += 1;
+              } else {
+                newAwayScore += 1;
+              }
+
+              // Tentar associar o golo a um jogador existente na base de dados
+              const teamPlayers = players.filter(p => p.selecao === scoringTeam);
+              let scorerName = "Avançado";
+              let assistantName = "Médio";
+
+              if (teamPlayers.length > 0) {
+                // Seleciona um marcador de golos realista (priorizando avançados/médios se existirem)
+                const attackers = teamPlayers.filter(p => p.posicao === 'Avançado' || p.posicao === 'Médio');
+                const selectedScorer = attackers.length > 0 
+                  ? attackers[Math.floor(Math.random() * attackers.length)] 
+                  : teamPlayers[Math.floor(Math.random() * teamPlayers.length)];
+
+                scorerName = selectedScorer.nomeCurto;
+
+                // Atualizar o jogador na base de dados de forma automática
+                setPlayers(currentPlayers => 
+                  currentPlayers.map(p => {
+                    if (p.id === selectedScorer.id) {
+                      const newGols = p.estatisticas.golos + 1;
+                      const newRating = Math.min(10, parseFloat((p.estatisticas.notaMedia + 0.15).toFixed(2)));
+                      const newVal = p.valorMercado + 2; // Valorização de mercado automática
+                      
+                      // Adicionar notificação de estatística de jogador
+                      setNotifications(prev => [
+                        { 
+                          id: crypto.randomUUID(), 
+                          text: `⭐ PERFORMANCE: Golo de ${p.nomeCurto}! Nota subiu para ★ ${newRating} e valor atingiu €${newVal}M!`, 
+                          timestamp: "Estatísticas" 
+                        },
+                        ...prev.slice(0, 4)
+                      ]);
+
+                      return {
+                        ...p,
+                        valorMercado: newVal,
+                        estatisticas: {
+                          ...p.estatisticas,
+                          golos: newGols,
+                          notaMedia: newRating
+                        },
+                        atualizadoRecentemente: true
+                      };
+                    }
+                    return p;
+                  })
+                );
+
+                // Remover o destaque luminoso de atualização após alguns segundos
+                setTimeout(() => {
+                  setPlayers(currentPlayers => 
+                    currentPlayers.map(p => p.nomeCurto === scorerName ? { ...p, atualizadoRecentemente: false } : p)
+                  );
+                }, 8000);
+              }
+
+              newEvents.push(`${nextMinute}' GOLO da ${scoringTeam}! Marcou ${scorerName}.`);
+              
+              setNotifications(prev => [
+                { id: crypto.randomUUID(), text: `⚽ GOLO! ${scoringTeam} marca aos ${nextMinute} minutos por intermédio de ${scorerName}!`, timestamp: "Em Direto" },
+                ...prev.slice(0, 4)
+              ]);
+            } else if (goloChance > 0.93) { // Cartão amarelo
+              newEvents.push(`${nextMinute}' Cartão Amarelo mostrado em campo.`);
+            }
+
+            return {
+              ...match,
+              minute: nextMinute,
+              homeScore: newHomeScore,
+              awayScore: newAwayScore,
+              events: newEvents.slice(-3)
+            };
+          }
+          return match;
+        });
+
+        return updated;
+      });
+    }, 6000); // Executa simulação a cada 6 segundos
+
+    return () => clearInterval(timer);
+  }, [players]);
+
+  // Lista dinâmica de países baseada nos jogadores existentes
+  const countriesList = useMemo(() => {
+    return ['Todos', ...new Set(players.map(p => p.selecao))];
+  }, [players]);
+
+  const positionsList = ['Todos', 'Guarda-redes', 'Defesa', 'Médio', 'Avançado'];
+
+  // Função para redefinir filtros
+  const handleResetFilters = () => {
+    setSearchQuery('');
+    setSelectedCountry('Todos');
+    setSelectedPosition('Todos');
+    setSelectedAgeGroup('Todos');
+    setSelectedSort('notaMedia_desc');
+  };
+
+  // Filtragem e Ordenação de Jogadores
+  const filteredPlayers = useMemo(() => {
+    return players
+      .filter(player => {
+        const matchesSearch = 
+          player.nome.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          player.nomeCurto.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          player.clube.toLowerCase().includes(searchQuery.toLowerCase());
+        
+        const matchesCountry = selectedCountry === 'Todos' || player.selecao === selectedCountry;
+        const matchesPosition = selectedPosition === 'Todos' || player.posicao === selectedPosition;
+        
+        let matchesAge = true;
+        if (selectedAgeGroup === 'jovens') matchesAge = player.idade < 23;
+        else if (selectedAgeGroup === 'auge') matchesAge = player.idade >= 23 && player.idade <= 30;
+        else if (selectedAgeGroup === 'veteranos') matchesAge = player.idade > 30;
+
+        return matchesSearch && matchesCountry && matchesPosition && matchesAge;
+      })
+      .sort((a, b) => {
+        if (selectedSort === 'nome') return a.nomeCurto.localeCompare(b.nomeCurto);
+        if (selectedSort === 'idade') return a.idade - b.idade;
+        if (selectedSort === 'valorMercado_desc') return b.valorMercado - a.valorMercado;
+        if (selectedSort === 'golos_desc') return b.estatisticas.golos - a.estatisticas.golos;
+        if (selectedSort === 'notaMedia_desc') return b.estatisticas.notaMedia - a.estatisticas.notaMedia;
+        return 0;
+      });
+  }, [players, searchQuery, selectedCountry, selectedPosition, selectedAgeGroup, selectedSort]);
+
+  // Estatísticas Rápidas do Banco de Dados
+  const statistics = useMemo(() => {
+    const total = players.length;
+    if (total === 0) return { total: 0, mediaIdade: 0, mediaNota: 0, valorTotal: 0, maiorGoleador: 'Nenhum' };
+    
+    const mediaIdade = (players.reduce((acc, curr) => acc + curr.idade, 0) / total).toFixed(1);
+    const mediaNota = (players.reduce((acc, curr) => acc + curr.estatisticas.notaMedia, 0) / total).toFixed(2);
+    const valorTotal = players.reduce((acc, curr) => acc + curr.valorMercado, 0);
+    
+    const topScorer = [...players].sort((a, b) => b.estatisticas.golos - a.estatisticas.golos)[0];
+
+    return {
+      total,
+      mediaIdade,
+      mediaNota,
+      valorTotal,
+      maiorGoleador: topScorer ? `${topScorer.nomeCurto} (${topScorer.estatisticas.golos} Golos)` : 'Nenhum'
+    };
+  }, [players]);
+
+  // Criar ou Editar Jogador
+  const handleSavePlayer = (e) => {
+    e.preventDefault();
+    if (!newPlayer.nome || !newPlayer.nomeCurto || !newPlayer.clube) {
+      alert("Por favor, preencha todos os campos obrigatórios (Nome, Nome Curto e Clube).");
+      return;
+    }
+
+    if (isEditing) {
+      setPlayers(prev => prev.map(p => p.id === isEditing ? { ...newPlayer, id: isEditing } : p));
+      setIsEditing(null);
+      setNotifications(prev => [
+        { id: crypto.randomUUID(), text: `📝 Jogador ${newPlayer.nomeCurto} atualizado manualmente com sucesso!`, timestamp: "Manual" },
+        ...prev.slice(0, 4)
+      ]);
+    } else {
+      const addedPlayer = {
+        ...newPlayer,
+        id: crypto.randomUUID(),
+        idade: Number(newPlayer.idade),
+        valorMercado: Number(newPlayer.valorMercado),
+        numeroCamisa: Number(newPlayer.numeroCamisa),
+        estatisticas: {
+          partidas: Number(newPlayer.estatisticas.partidas),
+          golos: Number(newPlayer.estatisticas.golos),
+          assistencias: Number(newPlayer.estatisticas.assistencias),
+          notaMedia: Number(newPlayer.estatisticas.notaMedia)
+        }
+      };
+      setPlayers(prev => [addedPlayer, ...prev]);
+      setNotifications(prev => [
+        { id: crypto.randomUUID(), text: `🆕 Novo jogador adicionado: ${addedPlayer.nomeCurto} (${addedPlayer.selecao})`, timestamp: "Manual" },
+        ...prev.slice(0, 4)
+      ]);
+    }
+
+    // Repor formulário
+    setNewPlayer({
+      nome: '',
+      nomeCurto: '',
+      selecao: 'Brasil',
+      posicao: 'Avançado',
+      posicaoEspecifica: '',
+      idade: 24,
+      clube: '',
+      ligaClube: 'Outra',
+      valorMercado: 50,
+      numeroCamisa: 10,
+      copasDisputadas: '2026',
+      pePreferido: 'Direito',
+      estatisticas: { golos: 0, assistencias: 0, partidas: 0, notaMedia: 7.0 },
+      atributos: { ritmo: 80, finalizacao: 75, passe: 75, dribles: 80, defesa: 50, fisico: 75 },
+      destaque: false
+    });
+    
+    setActiveTab('explorador');
+  };
+
+  const handleStartEdit = (player) => {
+    setNewPlayer(player);
+    setIsEditing(player.id);
+    setActiveTab('gerenciamento');
+  };
+
+  const handleDeletePlayer = (id) => {
+    if (window.confirm("Deseja realmente remover este jogador do banco de dados?")) {
+      const deleted = players.find(p => p.id === id);
+      setPlayers(prev => prev.filter(p => p.id !== id));
+      if (selectedPlayer && selectedPlayer.id === id) {
+        setSelectedPlayer(null);
+      }
+      if (deleted) {
+        setNotifications(prev => [
+          { id: crypto.randomUUID(), text: `❌ Jogador removido da base de dados: ${deleted.nomeCurto}`, timestamp: "Manual" },
+          ...prev.slice(0, 4)
+        ]);
+      }
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col font-sans selection:bg-emerald-500 selection:text-slate-900">
+      
+      {/* HEADER PRINCIPAL */}
+      <header className="bg-slate-950 border-b border-slate-800 sticky top-0 z-30 shadow-lg">
+        <div className="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div className="flex items-center gap-3">
+            <div className="bg-gradient-to-tr from-emerald-500 to-yellow-400 p-2.5 rounded-xl shadow-md shadow-emerald-500/10">
+              <Award className="w-7 h-7 text-slate-950" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold tracking-tight bg-gradient-to-r from-emerald-400 to-yellow-300 bg-clip-text text-transparent">
+                DATAFUT • COPA 2026
+              </h1>
+              <p className="text-xs text-slate-400">Banco de Dados em Direto • Sincronização Inteligente</p>
+            </div>
+          </div>
+          
+          {/* Navegação principal */}
+          <nav className="flex gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800">
+            <button 
+              onClick={() => setActiveTab('explorador')}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'explorador' ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/10' : 'text-slate-400 hover:text-slate-200'}`}
+            >
+              Explorador
+            </button>
+            <button 
+              onClick={() => setActiveTab('analytics')}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'analytics' ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/10' : 'text-slate-400 hover:text-slate-200'}`}
+            >
+              Estatísticas
+            </button>
+            <button 
+              onClick={() => {
+                setIsEditing(null);
+                setActiveTab('gerenciamento');
+              }}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'gerenciamento' ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/10' : 'text-slate-400 hover:text-slate-200'}`}
+            >
+              {isEditing ? 'Editar Atleta' : 'Adicionar Atleta'}
+            </button>
+            <button 
+              onClick={() => setActiveTab('jogos')}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all relative ${activeTab === 'jogos' ? 'bg-emerald-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-slate-200'}`}
+            >
+              Resultados Ao Vivo
+              <span className="absolute -top-1.5 -right-1.5 bg-rose-500 animate-pulse text-[9px] text-white px-1.5 py-0.5 rounded-full font-bold">
+                LIVE
+              </span>
+            </button>
+          </nav>
+        </div>
+      </header>
+
+      {/* FEED DE NOTIFICAÇÕES EM TEMPO REAL */}
+      <div className="bg-slate-950 border-b border-slate-850 px-4 py-2">
+        <div className="max-w-7xl mx-auto flex items-center gap-3 overflow-x-auto whitespace-nowrap">
+          <div className="flex items-center gap-1.5 text-rose-500 font-bold text-xs bg-rose-500/10 px-2 py-1 rounded border border-rose-500/20">
+            <Activity className="w-3.5 h-3.5 animate-pulse" />
+            LIVE FEED
+          </div>
+          <div className="flex items-center gap-6 text-xs text-slate-300">
+            {notifications.length > 0 ? (
+              <div className="flex items-center gap-2 animate-in slide-in-from-right-5">
+                <span className="text-[10px] text-slate-500 bg-slate-900 px-1.5 py-0.5 rounded uppercase font-bold">
+                  [{notifications[0].timestamp}]
+                </span>
+                <span className="font-medium text-slate-200">{notifications[0].text}</span>
+              </div>
+            ) : (
+              <span className="text-slate-500">A aguardar próximos lances do torneio...</span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* METRICAS GERAIS DE RESUMO */}
+      <div className="bg-slate-950/40 border-b border-slate-800 py-3.5 shadow-inner">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800/60 flex items-center gap-3">
+              <div className="bg-emerald-500/10 p-2 rounded-lg text-emerald-400">
+                <Users className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-xs text-slate-400 leading-none">Jogadores Ativos</p>
+                <p className="text-lg font-bold text-slate-100 mt-1">{statistics.total}</p>
+              </div>
+            </div>
+
+            <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800/60 flex items-center gap-3">
+              <div className="bg-blue-500/10 p-2 rounded-lg text-blue-400">
+                <User className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-xs text-slate-400 leading-none">Idade Média</p>
+                <p className="text-lg font-bold text-slate-100 mt-1">{statistics.mediaIdade} anos</p>
+              </div>
+            </div>
+
+            <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800/60 flex items-center gap-3">
+              <div className="bg-yellow-500/10 p-2 rounded-lg text-yellow-400">
+                <Award className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-xs text-slate-400 leading-none">Nota Média Geral</p>
+                <p className="text-lg font-bold text-slate-100 mt-1">{statistics.mediaNota}</p>
+              </div>
+            </div>
+
+            <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800/60 flex items-center gap-3">
+              <div className="bg-purple-500/10 p-2 rounded-lg text-purple-400">
+                <TrendingUp className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-xs text-slate-400 leading-none">Valor do Plantel</p>
+                <p className="text-lg font-bold text-slate-100 mt-1">€ {statistics.valorTotal}M</p>
+              </div>
+            </div>
+
+            <div className="col-span-2 md:col-span-1 bg-gradient-to-r from-emerald-950/30 to-slate-900/80 p-3 rounded-xl border border-emerald-900/20 flex items-center gap-3">
+              <div className="bg-emerald-400/10 p-2 rounded-lg text-emerald-300">
+                <Dribbble className="w-5 h-5" />
+              </div>
+              <div className="truncate">
+                <p className="text-xs text-emerald-400 leading-none font-semibold">Melhor Marcador</p>
+                <p className="text-sm font-bold text-slate-100 mt-1 truncate">{statistics.maiorGoleador}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* CONTEÚDO PRINCIPAL */}
+      <main className="flex-grow max-w-7xl w-full mx-auto px-4 py-6 sm:px-6 lg:px-8">
+        
+        {/* TAB 1: EXPLORADOR DE JOGADORES */}
+        {activeTab === 'explorador' && (
+          <div className="flex flex-col lg:flex-row gap-6">
+            
+            {/* PAINEL DE FILTROS LATERAL */}
+            <aside className="w-full lg:w-1/4 bg-slate-950/60 border border-slate-800 p-5 rounded-2xl flex flex-col gap-5 h-fit">
+              <div className="flex justify-between items-center pb-2 border-b border-slate-800">
+                <div className="flex items-center gap-2">
+                  <SlidersHorizontal className="w-4 h-4 text-emerald-400" />
+                  <h3 className="font-semibold text-sm tracking-wider uppercase text-slate-300">Filtros Avançados</h3>
+                </div>
+                <button 
+                  onClick={handleResetFilters}
+                  className="text-xs text-slate-400 hover:text-emerald-400 flex items-center gap-1 transition-colors"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  Limpar
+                </button>
+              </div>
+
+              {/* Filtro por Nome */}
+              <div>
+                <label className="block text-xs text-slate-400 mb-1.5 font-medium">Nome do Jogador ou Clube</label>
+                <div className="relative">
+                  <input 
+                    type="text" 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Ex: Cristiano, Vini, Haaland..."
+                    className="w-full bg-slate-900 border border-slate-800 rounded-xl py-2 pl-9 pr-4 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  />
+                  <Search className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+                </div>
+              </div>
+
+              {/* Filtro por Seleção */}
+              <div>
+                <label className="block text-xs text-slate-400 mb-1.5 font-medium">Seleção Nacional</label>
+                <select 
+                  value={selectedCountry}
+                  onChange={(e) => setSelectedCountry(e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                >
+                  {countriesList.map(country => (
+                    <option key={country} value={country}>{country}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Filtro por Posição */}
+              <div>
+                <label className="block text-xs text-slate-400 mb-1.5 font-medium">Posição em Campo</label>
+                <select 
+                  value={selectedPosition}
+                  onChange={(e) => setSelectedPosition(e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                >
+                  {positionsList.map(pos => (
+                    <option key={pos} value={pos}>{pos}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Filtro por Faixa Etária */}
+              <div>
+                <label className="block text-xs text-slate-400 mb-1.5 font-medium">Faixa Etária</label>
+                <select 
+                  value={selectedAgeGroup}
+                  onChange={(e) => setSelectedAgeGroup(e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                >
+                  <option value="Todos">Todas as idades</option>
+                  <option value="jovens">Jovens Promessas (&lt; 23 anos)</option>
+                  <option value="auge">No Auge da Carreira (23 - 30 anos)</option>
+                  <option value="veteranos">Veteranos (+30 anos)</option>
+                </select>
+              </div>
+
+              {/* Ordenação */}
+              <div>
+                <label className="block text-xs text-slate-400 mb-1.5 font-medium">Ordenar Resultados por</label>
+                <select 
+                  value={selectedSort}
+                  onChange={(e) => setSelectedSort(e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                >
+                  <option value="notaMedia_desc">Nota Média (Melhores Primeiro)</option>
+                  <option value="valorMercado_desc">Valor de Mercado (€)</option>
+                  <option value="golos_desc">Mais Golos Marcados</option>
+                  <option value="nome">Nome do Atleta</option>
+                  <option value="idade">Idade Crescente</option>
+                </select>
+              </div>
+
+              <div className="mt-2 p-3 bg-slate-900/50 rounded-xl border border-slate-800/80 text-xs text-slate-400">
+                <p className="flex items-center gap-1.5 text-slate-300 font-semibold mb-1">
+                  <Info className="w-3.5 h-3.5 text-emerald-400" />
+                  Sincronização Ativa
+                </p>
+                Os jogos em direto simulam eventos e alteram automaticamente os valores, golos e notas dos atletas no explorador.
+              </div>
+            </aside>
+
+            {/* LISTA DE JOGADORES */}
+            <section className="w-full lg:w-3/4">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 bg-slate-950/40 p-3 rounded-xl border border-slate-800/60">
+                <div>
+                  <h2 className="font-bold text-lg text-slate-200">Atletas Catalogados</h2>
+                  <p className="text-xs text-slate-400">A exibir {filteredPlayers.length} de {players.length} atletas da Copa de 2026</p>
+                </div>
+                
+                {/* Botões de Visualização */}
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={() => setViewMode('grid')}
+                    className={`p-2 rounded-lg transition-colors ${viewMode === 'grid' ? 'bg-slate-800 text-emerald-400' : 'text-slate-500 hover:text-slate-300'}`}
+                    title="Exibir em Grelha"
+                  >
+                    <Grid className="w-5 h-5" />
+                  </button>
+                  <button 
+                    onClick={() => setViewMode('table')}
+                    className={`p-2 rounded-lg transition-colors ${viewMode === 'table' ? 'bg-slate-800 text-emerald-400' : 'text-slate-500 hover:text-slate-300'}`}
+                    title="Exibir em Tabela"
+                  >
+                    <List className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Casos vazios */}
+              {filteredPlayers.length === 0 && (
+                <div className="bg-slate-950/20 border border-dashed border-slate-800 rounded-2xl p-12 text-center">
+                  <Users className="w-12 h-12 text-slate-600 mx-auto mb-4" />
+                  <h3 className="font-semibold text-slate-300 text-lg">Nenhum atleta encontrado</h3>
+                  <p className="text-sm text-slate-500 max-w-md mx-auto mt-1">Ajuste os filtros ou utilize o formulário para adicionar o seu jogador favorito.</p>
+                  <button 
+                    onClick={handleResetFilters}
+                    className="mt-4 px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/25 text-emerald-400 rounded-xl text-sm font-medium transition-colors border border-emerald-500/20"
+                  >
+                    Repor Filtros
+                  </button>
+                </div>
+              )}
+
+              {/* MODO GRELHA CARDS */}
+              {viewMode === 'grid' && filteredPlayers.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {filteredPlayers.map(player => (
+                    <div 
+                      key={player.id}
+                      className={`relative bg-slate-950/75 rounded-2xl border ${
+                        player.atualizadoRecentemente 
+                          ? 'border-emerald-400 shadow-md shadow-emerald-500/20 animate-pulse' 
+                          : player.destaque 
+                            ? 'border-emerald-500/30' 
+                            : 'border-slate-800'
+                      } overflow-hidden shadow-lg hover:border-slate-700 transition-all group flex flex-col justify-between`}
+                    >
+                      {/* Destaque Tag */}
+                      {player.destaque && (
+                        <div className="absolute top-2 right-2 bg-gradient-to-r from-emerald-500 to-yellow-500 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
+                          Destaque
+                        </div>
+                      )}
+
+                      {player.atualizadoRecentemente && (
+                        <div className="absolute top-2 left-2 bg-emerald-500 text-slate-950 text-[9px] font-bold px-2 py-0.5 rounded-full animate-bounce flex items-center gap-1">
+                          <Zap className="w-2.5 h-2.5" /> ATUALIZADO
+                        </div>
+                      )}
+
+                      <div className="p-5">
+                        {/* Avatar Inicial + Camisa */}
+                        <div className="flex justify-between items-start mb-4">
+                          <div className="flex gap-3 items-center">
+                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center border border-slate-700 text-slate-300 font-bold text-lg relative">
+                              {player.nomeCurto.substring(0, 2).toUpperCase()}
+                              <span className="absolute -bottom-1 -right-1 bg-emerald-500 text-slate-950 text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                                {player.numeroCamisa}
+                              </span>
+                            </div>
+                            <div>
+                              <h3 className="font-bold text-slate-100 group-hover:text-emerald-400 transition-colors truncate max-w-[150px]">{player.nomeCurto}</h3>
+                              <p className="text-xs text-slate-400 flex items-center gap-1.5 mt-0.5">
+                                <span className="inline-block w-2 h-2 rounded-full bg-emerald-400"></span>
+                                {player.selecao}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <div className="text-right">
+                            <span className="text-xs text-slate-400 block font-medium uppercase tracking-wider">{player.posicao}</span>
+                            <span className="text-[10px] text-slate-500 block">{player.posicaoEspecifica}</span>
+                          </div>
+                        </div>
+
+                        {/* Informações detalhadas */}
+                        <div className="grid grid-cols-2 gap-y-2 gap-x-4 py-3 border-t border-b border-slate-900 text-xs text-slate-300">
+                          <div>
+                            <span className="text-slate-500 block text-[10px] leading-none">CLUBE ATUAL</span>
+                            <span className="font-medium truncate block max-w-[110px]">{player.clube}</span>
+                          </div>
+                          <div>
+                            <span className="text-slate-500 block text-[10px] leading-none">VALOR</span>
+                            <span className="font-bold text-emerald-400">€ {player.valorMercado}M</span>
+                          </div>
+                          <div>
+                            <span className="text-slate-500 block text-[10px] leading-none">IDADE</span>
+                            <span className="font-medium">{player.idade} anos</span>
+                          </div>
+                          <div>
+                            <span className="text-slate-500 block text-[10px] leading-none">NOTA MÉDIA</span>
+                            <span className="font-bold text-yellow-400">★ {player.estatisticas.notaMedia}</span>
+                          </div>
+                        </div>
+
+                        {/* Mini Barra de Atributos */}
+                        <div className="mt-3 space-y-1">
+                          <div className="flex justify-between text-[10px] text-slate-400">
+                            <span>Média de Ritmo ({player.atributos.ritmo})</span>
+                            <span>Média de Finalização ({player.atributos.finalizacao})</span>
+                          </div>
+                          <div className="w-full bg-slate-900 rounded-full h-1 overflow-hidden">
+                            <div 
+                              className="bg-emerald-500 h-full rounded-full" 
+                              style={{ width: `${(player.atributos.ritmo + player.atributos.finalizacao) / 2}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Ações inferiores */}
+                      <div className="bg-slate-900/60 p-3 border-t border-slate-900 flex justify-between items-center gap-2">
+                        <button 
+                          onClick={() => setSelectedPlayer(player)}
+                          className="text-xs bg-slate-800 hover:bg-slate-750 text-slate-200 px-3 py-1.5 rounded-lg flex items-center gap-1 font-medium transition-colors flex-1 justify-center"
+                        >
+                          <Info className="w-3.5 h-3.5 text-emerald-400" />
+                          Perfil Completo
+                        </button>
+                        
+                        <div className="flex gap-1.5">
+                          <button 
+                            onClick={() => handleStartEdit(player)}
+                            className="p-1.5 bg-slate-800/80 hover:bg-blue-900/40 hover:text-blue-400 text-slate-400 rounded-lg transition-all"
+                            title="Editar Atleta"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+                          <button 
+                            onClick={() => handleDeletePlayer(player.id)}
+                            className="p-1.5 bg-slate-800/80 hover:bg-rose-900/40 hover:text-rose-400 text-slate-400 rounded-lg transition-all"
+                            title="Remover Atleta"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* MODO TABELA DETALHADA */}
+              {viewMode === 'table' && filteredPlayers.length > 0 && (
+                <div className="bg-slate-950/60 rounded-2xl border border-slate-800 overflow-x-auto shadow-lg">
+                  <table className="w-full text-left border-collapse min-w-[700px]">
+                    <thead>
+                      <tr className="bg-slate-900/80 text-[11px] font-bold uppercase text-slate-400 tracking-wider border-b border-slate-850">
+                        <th className="py-3.5 px-4">Jogador</th>
+                        <th className="py-3.5 px-4">Seleção</th>
+                        <th className="py-3.5 px-4">Posição</th>
+                        <th className="py-3.5 px-4">Idade</th>
+                        <th className="py-3.5 px-4">Clube</th>
+                        <th className="py-3.5 px-4 text-center">Golos / Assist.</th>
+                        <th className="py-3.5 px-4 text-right">Valor (€)</th>
+                        <th className="py-3.5 px-4 text-center">Nota Copa</th>
+                        <th className="py-3.5 px-4 text-right">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-850/80 text-sm">
+                      {filteredPlayers.map(player => (
+                        <tr 
+                          key={player.id}
+                          className={`hover:bg-slate-900/30 transition-colors ${player.atualizadoRecentemente ? 'bg-emerald-500/5' : ''}`}
+                        >
+                          <td className="py-3 px-4">
+                            <div className="flex items-center gap-2.5">
+                              <span className={`font-bold px-2 py-0.5 rounded text-xs ${player.atualizadoRecentemente ? 'bg-emerald-500 text-slate-950 animate-bounce' : 'text-emerald-400 bg-emerald-500/5'}`}>
+                                #{player.numeroCamisa}
+                              </span>
+                              <div>
+                                <span className="font-bold text-slate-100 block">{player.nomeCurto}</span>
+                                <span className="text-[10px] text-slate-400 block truncate max-w-[120px]">{player.nome}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="py-3 px-4 text-slate-300 font-medium">{player.selecao}</td>
+                          <td className="py-3 px-4">
+                            <span className="px-2 py-0.5 bg-slate-900 text-[11px] font-semibold text-slate-400 rounded-md border border-slate-800">
+                              {player.posicao}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-slate-300">{player.idade} anos</td>
+                          <td className="py-3 px-4">
+                            <span className="block truncate max-w-[120px] text-xs text-slate-300">{player.clube}</span>
+                            <span className="text-[10px] text-slate-500 block truncate max-w-[120px]">{player.ligaClube}</span>
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <span className="font-semibold text-slate-200">
+                              {player.estatisticas.golos} G / {player.estatisticas.assistencias} A
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-right text-emerald-400 font-semibold">€{player.valorMercado}M</td>
+                          <td className="py-3 px-4 text-center">
+                            <span className="font-extrabold text-yellow-400 bg-yellow-400/5 px-2 py-0.5 rounded text-xs border border-yellow-400/10">
+                              ★ {player.estatisticas.notaMedia}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-right">
+                            <div className="flex gap-1 justify-end">
+                              <button 
+                                onClick={() => setSelectedPlayer(player)}
+                                className="p-1.5 hover:text-emerald-400 text-slate-400 transition-colors"
+                                title="Ver Perfil"
+                              >
+                                <Info className="w-4 h-4" />
+                              </button>
+                              <button 
+                                onClick={() => handleStartEdit(player)}
+                                className="p-1.5 hover:text-blue-400 text-slate-400 transition-colors"
+                                title="Editar Atleta"
+                              >
+                                <Edit3 className="w-4 h-4" />
+                              </button>
+                              <button 
+                                onClick={() => handleDeletePlayer(player.id)}
+                                className="p-1.5 hover:text-rose-400 text-slate-400 transition-colors"
+                                title="Excluir Atleta"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </section>
+          </div>
+        )}
+
+        {/* TAB 2: ANALYTICS E GRÁFICOS */}
+        {activeTab === 'analytics' && (
+          <div className="space-y-6">
+            
+            {/* LINHA 1: RESUMO DO ANALYTICS */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              
+              {/* Card Seleções Líderes */}
+              <div className="bg-slate-950/60 border border-slate-800 p-5 rounded-2xl">
+                <h3 className="font-bold text-sm tracking-wider uppercase text-slate-400 mb-4 flex items-center gap-1.5">
+                  <Award className="w-4 h-4 text-yellow-400" />
+                  Média de Nota por Posição
+                </h3>
+                <div className="space-y-4">
+                  {['Avançado', 'Médio', 'Defesa', 'Guarda-redes'].map(pos => {
+                    const posPlayers = players.filter(p => p.posicao === pos);
+                    const avg = posPlayers.length > 0 
+                      ? (posPlayers.reduce((acc, curr) => acc + curr.estatisticas.notaMedia, 0) / posPlayers.length).toFixed(2)
+                      : "0.00";
+                    
+                    const scorePercentage = Math.max(0, Math.min(100, ((parseFloat(avg) - 5) / 5) * 100));
+
+                    return (
+                      <div key={pos} className="space-y-1">
+                        <div className="flex justify-between text-xs font-semibold">
+                          <span className="text-slate-300">{pos}</span>
+                          <span className="text-yellow-400">★ {avg}</span>
+                        </div>
+                        <div className="w-full bg-slate-900 rounded-full h-2">
+                          <div 
+                            className="bg-yellow-400 h-2 rounded-full transition-all duration-500" 
+                            style={{ width: `${scorePercentage}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Card Faixa Etária */}
+              <div className="bg-slate-950/60 border border-slate-800 p-5 rounded-2xl">
+                <h3 className="font-bold text-sm tracking-wider uppercase text-slate-400 mb-4 flex items-center gap-1.5">
+                  <Users className="w-4 h-4 text-blue-400" />
+                  Distribuição Demográfica (Idades)
+                </h3>
+                <div className="space-y-4">
+                  {[
+                    { label: "Jovens Promessas (<23)", count: players.filter(p => p.idade < 23).length },
+                    { label: "No Auge (23-30)", count: players.filter(p => p.idade >= 23 && p.idade <= 30).length },
+                    { label: "Experientes (31-35)", count: players.filter(p => p.idade > 30 && p.idade <= 35).length },
+                    { label: "Veteranos (36+)", count: players.filter(p => p.idade > 35).length }
+                  ].map(group => {
+                    const pct = players.length > 0 ? (group.count / players.length) * 100 : 0;
+                    return (
+                      <div key={group.label} className="space-y-1">
+                        <div className="flex justify-between text-xs font-medium">
+                          <span className="text-slate-300">{group.label}</span>
+                          <span className="text-slate-400">{group.count} jogadores ({pct.toFixed(0)}%)</span>
+                        </div>
+                        <div className="w-full bg-slate-900 rounded-full h-2">
+                          <div 
+                            className="bg-blue-400 h-2 rounded-full" 
+                            style={{ width: `${pct}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Ligas de Clubes Mais Representadas */}
+              <div className="bg-slate-950/60 border border-slate-800 p-5 rounded-2xl">
+                <h3 className="font-bold text-sm tracking-wider uppercase text-slate-400 mb-4 flex items-center gap-1.5">
+                  <Briefcase className="w-4 h-4 text-emerald-400" />
+                  Atletas por Liga de Origem
+                </h3>
+                <div className="space-y-3">
+                  {[
+                    { liga: "La Liga (Espanha)", count: players.filter(p => p.ligaClube.includes("Espanha")).length },
+                    { liga: "Premier League (Inglaterra)", count: players.filter(p => p.ligaClube.includes("Inglaterra")).length },
+                    { liga: "Bundesliga (Alemanha)", count: players.filter(p => p.ligaClube.includes("Alemanha")).length },
+                    { liga: "Outras Ligas", count: players.filter(p => !p.ligaClube.includes("Espanha") && !p.ligaClube.includes("Inglaterra") && !p.ligaClube.includes("Alemanha")).length }
+                  ].map(item => {
+                    const pct = players.length > 0 ? (item.count / players.length) * 100 : 0;
+                    return (
+                      <div key={item.liga} className="flex justify-between items-center text-xs">
+                        <span className="text-slate-400 font-medium">{item.liga}</span>
+                        <div className="flex items-center gap-2">
+                          <div className="w-20 bg-slate-900 rounded-full h-1.5">
+                            <div className="bg-emerald-400 h-1.5 rounded-full" style={{ width: `${pct}%` }}></div>
+                          </div>
+                          <span className="font-bold text-slate-200 w-4 text-right">{item.count}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* GRÁFICO COMPARATIVO DE ATRIBUTOS POR POSIÇÃO */}
+            <div className="bg-slate-950/60 border border-slate-800 p-6 rounded-2xl">
+              <h3 className="font-bold text-base tracking-wider uppercase text-slate-300 mb-6 flex items-center gap-2">
+                <SlidersHorizontal className="w-5 h-5 text-emerald-400" />
+                Média de Competências Técnicas por Posição (Escala FIFA)
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {['Avançado', 'Médio', 'Defesa', 'Guarda-redes'].map(pos => {
+                  const posPlayers = players.filter(p => p.posicao === pos);
+                  const count = posPlayers.length;
+                  
+                  const avgSkill = (attributeKey) => {
+                    if (count === 0) return 0;
+                    return Math.round(posPlayers.reduce((acc, p) => acc + p.atributos[attributeKey], 0) / count);
+                  };
+
+                  const stats = {
+                    ritmo: avgSkill('ritmo'),
+                    finalizacao: avgSkill('finalizacao'),
+                    passe: avgSkill('passe'),
+                    dribles: avgSkill('dribles'),
+                    defesa: avgSkill('defesa'),
+                    fisico: avgSkill('fisico')
+                  };
+
+                  return (
+                    <div key={pos} className="bg-slate-900/60 border border-slate-800/80 p-4 rounded-xl space-y-4">
+                      <div className="flex justify-between items-center border-b border-slate-850 pb-2">
+                        <h4 className="font-bold text-slate-200 text-sm">{pos}</h4>
+                        <span className="text-xs text-emerald-400 font-medium">({count} Atletas)</span>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        {Object.entries(stats).map(([skill, val]) => (
+                          <div key={skill} className="space-y-1">
+                            <div className="flex justify-between text-[11px] font-medium uppercase tracking-wide">
+                              <span className="text-slate-400">{skill === 'finalizacao' ? 'Finalização' : skill}</span>
+                              <span className="text-slate-200 font-bold">{val}</span>
+                            </div>
+                            <div className="w-full bg-slate-950 rounded-full h-1.5">
+                              <div 
+                                className={`h-1.5 rounded-full ${val >= 85 ? 'bg-emerald-400' : val >= 75 ? 'bg-blue-400' : 'bg-slate-600'}`}
+                                style={{ width: `${val}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3: GERENCIAR (ADICIONAR/EDITAR) JOGADORES */}
+        {activeTab === 'gerenciamento' && (
+          <div className="max-w-3xl mx-auto bg-slate-950/60 border border-slate-800 p-6 sm:p-8 rounded-3xl shadow-xl">
+            <div className="flex items-center gap-3 border-b border-slate-850 pb-5 mb-6">
+              <div className="bg-emerald-500/10 p-2 rounded-xl text-emerald-400">
+                <PlusCircle className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-slate-100">
+                  {isEditing ? 'Editar Jogador no Banco de Dados' : 'Inserir Novo Jogador na Copa 2026'}
+                </h2>
+                <p className="text-xs text-slate-400">
+                  Insira as estatísticas detalhadas, clube, seleção e notas para atualizar o sistema da Copa.
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={handleSavePlayer} className="space-y-6">
+              
+              {/* Nome Completo & Nome Curto */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Nome Completo *</label>
+                  <input 
+                    type="text" 
+                    required
+                    value={newPlayer.nome}
+                    onChange={(e) => setNewPlayer(prev => ({ ...prev, nome: e.target.value }))}
+                    placeholder="Ex: Cristiano Ronaldo dos Santos Aveiro"
+                    className="w-full bg-slate-900 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Nome em Campo (Curto) *</label>
+                  <input 
+                    type="text" 
+                    required
+                    value={newPlayer.nomeCurto}
+                    onChange={(e) => setNewPlayer(prev => ({ ...prev, nomeCurto: e.target.value }))}
+                    placeholder="Ex: Cristiano Ronaldo"
+                    className="w-full bg-slate-900 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  />
+                </div>
+              </div>
+
+              {/* Seleção, Clube, Posição */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Seleção Nacional</label>
+                  <input 
+                    type="text" 
+                    required
+                    value={newPlayer.selecao}
+                    onChange={(e) => setNewPlayer(prev => ({ ...prev, selecao: e.target.value }))}
+                    placeholder="Ex: Portugal"
+                    className="w-full bg-slate-900 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Posição Geral</label>
+                  <select 
+                    value={newPlayer.posicao}
+                    onChange={(e) => setNewPlayer(prev => ({ ...prev, posicao: e.target.value, posicaoEspecifica: e.target.value }))}
+                    className="w-full bg-slate-900 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  >
+                    <option value="Avançado">Avançado</option>
+                    <option value="Médio">Médio</option>
+                    <option value="Defesa">Defesa</option>
+                    <option value="Guarda-redes">Guarda-redes</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Função Específica</label>
+                  <input 
+                    type="text" 
+                    value={newPlayer.posicaoEspecifica}
+                    onChange={(e) => setNewPlayer(prev => ({ ...prev, posicaoEspecifica: e.target.value }))}
+                    placeholder="Ex: Extremo Esquerdo"
+                    className="w-full bg-slate-900 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  />
+                </div>
+              </div>
+
+              {/* Clube Atual, Liga, Valor de mercado */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Clube Atual *</label>
+                  <input 
+                    type="text" 
+                    required
+                    value={newPlayer.clube}
+                    onChange={(e) => setNewPlayer(prev => ({ ...prev, clube: e.target.value }))}
+                    placeholder="Ex: Real Madrid"
+                    className="w-full bg-slate-900 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Liga Doméstica</label>
+                  <input 
+                    type="text" 
+                    value={newPlayer.ligaClube}
+                    onChange={(e) => setNewPlayer(prev => ({ ...prev, ligaClube: e.target.value }))}
+                    placeholder="Ex: Premier League"
+                    className="w-full bg-slate-900 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Valor de Mercado (€ Milhões)</label>
+                  <input 
+                    type="number" 
+                    min="0"
+                    value={newPlayer.valorMercado}
+                    onChange={(e) => setNewPlayer(prev => ({ ...prev, valorMercado: parseFloat(e.target.value) || 0 }))}
+                    className="w-full bg-slate-900 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  />
+                </div>
+              </div>
+
+              {/* Idade, Camisa, Destaque */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Idade</label>
+                  <input 
+                    type="number" 
+                    min="15" 
+                    max="50"
+                    value={newPlayer.idade}
+                    onChange={(e) => setNewPlayer(prev => ({ ...prev, idade: parseInt(e.target.value) || 24 }))}
+                    className="w-full bg-slate-900 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Número da Camisola</label>
+                  <input 
+                    type="number" 
+                    min="1" 
+                    max="99"
+                    value={newPlayer.numeroCamisa}
+                    onChange={(e) => setNewPlayer(prev => ({ ...prev, numeroCamisa: parseInt(e.target.value) || 10 }))}
+                    className="w-full bg-slate-900 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200"
+                  />
+                </div>
+                <div className="flex items-center gap-2 pt-6">
+                  <input 
+                    type="checkbox" 
+                    id="destaque"
+                    checked={newPlayer.destaque}
+                    onChange={(e) => setNewPlayer(prev => ({ ...prev, destaque: e.target.checked }))}
+                    className="w-4 h-4 rounded bg-slate-900 border-slate-800 text-emerald-500"
+                  />
+                  <label htmlFor="destaque" className="text-sm font-semibold text-slate-300 cursor-pointer">Definir como Jogador Destaque?</label>
+                </div>
+              </div>
+
+              {/* Estatísticas na Copa */}
+              <div className="bg-slate-900/40 p-4 rounded-2xl border border-slate-800/80">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Rendimento na Copa 2026</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <div>
+                    <label className="block text-[11px] text-slate-400 mb-1">Partidas Realizadas</label>
+                    <input 
+                      type="number" 
+                      min="0"
+                      value={newPlayer.estatisticas.partidas}
+                      onChange={(e) => setNewPlayer(prev => ({ ...prev, estatisticas: { ...prev.estatisticas, partidas: parseInt(e.target.value) || 0 } }))}
+                      className="w-full bg-slate-900 border border-slate-800 rounded-xl py-1.5 px-3 text-sm text-slate-200"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] text-slate-400 mb-1">Golos Marcados</label>
+                    <input 
+                      type="number" 
+                      min="0"
+                      value={newPlayer.estatisticas.golos}
+                      onChange={(e) => setNewPlayer(prev => ({ ...prev, estatisticas: { ...prev.estatisticas, golos: parseInt(e.target.value) || 0 } }))}
+                      className="w-full bg-slate-900 border border-slate-800 rounded-xl py-1.5 px-3 text-sm text-slate-200"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] text-slate-400 mb-1">Assistências</label>
+                    <input 
+                      type="number" 
+                      min="0"
+                      value={newPlayer.estatisticas.assistencias}
+                      onChange={(e) => setNewPlayer(prev => ({ ...prev, estatisticas: { ...prev.estatisticas, assistencias: parseInt(e.target.value) || 0 } }))}
+                      className="w-full bg-slate-900 border border-slate-800 rounded-xl py-1.5 px-3 text-sm text-slate-200"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] text-slate-400 mb-1">Nota Geral (0 a 10)</label>
+                    <input 
+                      type="number" 
+                      step="0.1" 
+                      min="0" 
+                      max="10"
+                      value={newPlayer.estatisticas.notaMedia}
+                      onChange={(e) => setNewPlayer(prev => ({ ...prev, estatisticas: { ...prev.estatisticas, notaMedia: parseFloat(e.target.value) || 7.0 } }))}
+                      className="w-full bg-slate-900 border border-slate-800 rounded-xl py-1.5 px-3 text-sm text-slate-200"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Habilidades Técnicas */}
+              <div className="bg-slate-900/40 p-4 rounded-2xl border border-slate-800/80">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Atributos FIFA (Escala 0-99)</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-6 gap-4">
+                  {[
+                    { label: "Ritmo", key: "ritmo" },
+                    { label: "Finalização", key: "finalizacao" },
+                    { label: "Passe", key: "passe" },
+                    { label: "Drible", key: "dribles" },
+                    { label: "Defesa", key: "defesa" },
+                    { label: "Físico", key: "fisico" }
+                  ].map(skill => (
+                    <div key={skill.key}>
+                      <label className="block text-[11px] text-slate-400 mb-1">{skill.label}</label>
+                      <input 
+                        type="number" 
+                        min="1" 
+                        max="99"
+                        value={newPlayer.atributos[skill.key]}
+                        onChange={(e) => setNewPlayer(prev => ({ 
+                          ...prev, 
+                          atributos: { ...prev.atributos, [skill.key]: parseInt(e.target.value) || 80 } 
+                        }))}
+                        className="w-full bg-slate-900 border border-slate-800 rounded-xl py-1.5 px-3 text-sm text-slate-200"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Botões de Ação */}
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-850">
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    setIsEditing(null);
+                    setActiveTab('explorador');
+                  }}
+                  className="px-5 py-2.5 rounded-xl text-sm font-medium bg-slate-900 hover:bg-slate-850 text-slate-400 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="submit" 
+                  className="px-6 py-2.5 rounded-xl text-sm font-bold bg-emerald-500 hover:bg-emerald-600 text-slate-950 shadow-lg shadow-emerald-500/10 flex items-center gap-1.5 transition-all"
+                >
+                  <Check className="w-4 h-4" />
+                  {isEditing ? 'Guardar Alterações' : 'Adicionar ao Banco de Dados'}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* TAB 4: CALENDÁRIO E JOGOS EM TEMPO REAL COPA 2026 */}
+        {activeTab === 'jogos' && (
+          <div className="space-y-6 max-w-4xl mx-auto">
+            <div className="bg-slate-950/60 border border-slate-800 p-6 rounded-2xl">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 border-b border-slate-850 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="bg-rose-500/10 p-2.5 rounded-xl text-rose-500 animate-pulse">
+                    <Activity className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-slate-100 flex items-center gap-2">
+                      Centro de Jogos em Tempo Real
+                    </h2>
+                    <p className="text-xs text-slate-400">Resultados atualizados dinamicamente a cada minuto com simulação real de eventos.</p>
+                  </div>
+                </div>
+                
+                <div className="bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800 text-[11px] font-mono text-emerald-400 flex items-center gap-2">
+                  <Zap className="w-3.5 h-3.5 text-emerald-400 animate-bounce" />
+                  Atualização Dinâmica Ativa
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {matches.map(match => (
+                  <div 
+                    key={match.id}
+                    className={`bg-slate-900/70 border ${match.status === 'LIVE' ? 'border-rose-500/40 shadow-md shadow-rose-500/5' : 'border-slate-800/85'} p-4 rounded-xl flex flex-col justify-between transition-all`}
+                  >
+                    <div className="flex justify-between items-center text-[10px] text-slate-400 border-b border-slate-850 pb-2 mb-3">
+                      <span className="font-semibold uppercase text-emerald-400">{match.stage}</span>
+                      <div className="flex items-center gap-1.5">
+                        {match.status === 'LIVE' ? (
+                          <>
+                            <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>
+                            <span className="text-rose-500 font-bold">{match.minute}' AO VIVO</span>
+                          </>
+                        ) : match.status === 'FINISHED' ? (
+                          <span className="text-slate-400 font-bold">TERMINADO</span>
+                        ) : (
+                          <span className="text-blue-400 font-bold">HOJE - {match.date.split(',')[1] || match.date}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center py-2 px-2">
+                      {/* Equipa Casa */}
+                      <div className="flex flex-col items-center w-1/3 text-center">
+                        <div className="w-10 h-10 rounded-full bg-slate-850 flex items-center justify-center font-bold text-slate-300 text-sm border border-slate-850">
+                          {match.home.substring(0, 3).toUpperCase()}
+                        </div>
+                        <span className="text-xs font-bold text-slate-200 mt-2 truncate max-w-full">{match.home}</span>
+                      </div>
+
+                      {/* Scoreboard */}
+                      <div className="w-1/3 text-center flex flex-col justify-center items-center">
+                        {match.status === 'UPCOMING' ? (
+                          <span className="text-xs font-bold bg-slate-805 text-slate-400 px-3 py-1 rounded-md">
+                            VS
+                          </span>
+                        ) : (
+                          <span className={`text-xl font-extrabold px-3 py-1 rounded-lg ${match.status === 'LIVE' ? 'bg-rose-500/10 text-rose-400' : 'bg-emerald-500/10 text-emerald-400'}`}>
+                            {match.homeScore} - {match.awayScore}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Equipa Fora */}
+                      <div className="flex flex-col items-center w-1/3 text-center">
+                        <div className="w-10 h-10 rounded-full bg-slate-850 flex items-center justify-center font-bold text-slate-300 text-sm border border-slate-850">
+                          {match.away.substring(0, 3).toUpperCase()}
+                        </div>
+                        <span className="text-xs font-bold text-slate-200 mt-2 truncate max-w-full">{match.away}</span>
+                      </div>
+                    </div>
+
+                    {/* Timeline de Eventos Recentes */}
+                    {match.events && match.events.length > 0 && (
+                      <div className="mt-3 p-2 bg-slate-950/60 rounded-lg border border-slate-850/50">
+                        <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-widest mb-1">Acontecimentos da Partida:</p>
+                        <ul className="text-[10px] space-y-1 text-slate-300 font-mono">
+                          {match.events.map((ev, idx) => (
+                            <li key={idx} className="flex items-center gap-1.5 truncate">
+                              <span className="inline-block w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                              {ev}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    <div className="text-[10px] text-slate-500 mt-3 pt-2 border-t border-slate-850/50 text-center">
+                      🏟️ {match.stadium}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-tr from-slate-950 to-slate-900 border border-slate-800 p-5 rounded-2xl text-xs text-slate-400 flex flex-col sm:flex-row items-center gap-4">
+              <div className="bg-blue-500/10 p-3 rounded-full text-blue-400">
+                <Tv className="w-6 h-6" />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-slate-200 mb-1">Informações de Transmissão da Copa 2026</h4>
+                <p className="leading-relaxed">
+                  As transmissões reais estão a acontecer globalmente com grande foco digital. Pode acompanhar os resultados reais e diretos via <strong>FIFA+</strong> ou canais oficiais parceiros de cada região. O fuso horário de referência de Dallas, Texas, dita os horários oficiais da rodada de hoje.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+      </main>
+
+      {/* FOOTER */}
+      <footer className="bg-slate-950 border-t border-slate-850 py-6 mt-12 text-center text-xs text-slate-500">
+        <p>© 2026 Copa do Mundo da FIFA™ • Painel Estatístico & Base de Dados Oficial.</p>
+        <p className="mt-1 text-slate-600">Simulação interativa voltada para monitorização, entretenimento e análise tática.</p>
+      </footer>
+
+      {/* MODAL DETALHE COMPLETO DO JOGADOR */}
+      {selectedPlayer && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 w-full max-w-xl rounded-3xl overflow-hidden shadow-2xl relative animate-in fade-in zoom-in duration-200">
+            
+            {/* Fechar botão */}
+            <button 
+              onClick={() => setSelectedPlayer(null)}
+              className="absolute top-4 right-4 p-1.5 rounded-full bg-slate-950 hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Cabeçalho do Cartão de Atleta */}
+            <div className="bg-gradient-to-b from-slate-950 to-slate-900 p-6 border-b border-slate-850 relative">
+              <div className="flex gap-4 items-center">
+                <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 flex items-center justify-center border-2 border-emerald-500/30 text-emerald-400 font-extrabold text-2xl relative">
+                  {selectedPlayer.nomeCurto.substring(0, 2).toUpperCase()}
+                  <span className="absolute -bottom-1 -right-1 bg-yellow-400 text-slate-950 text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                    {selectedPlayer.numeroCamisa}
+                  </span>
+                </div>
+                
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-xl font-extrabold text-slate-100">{selectedPlayer.nomeCurto}</h2>
+                    {selectedPlayer.destaque && (
+                      <span className="bg-emerald-500/20 text-emerald-400 text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-wider border border-emerald-500/20">
+                        Top Star
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-400 mt-1">{selectedPlayer.nome}</p>
+                  <p className="text-xs text-slate-300 font-medium mt-1 flex items-center gap-1.5">
+                    <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                    {selectedPlayer.selecao}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Informações de Perfil e Estatísticas */}
+            <div className="p-6 space-y-6">
+              
+              {/* Painel do Clube */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-slate-950/40 p-4 rounded-xl border border-slate-850">
+                <div className="text-center md:text-left">
+                  <span className="text-[10px] text-slate-500 uppercase font-semibold block">Clube</span>
+                  <span className="text-xs font-bold text-slate-200 truncate block">{selectedPlayer.clube}</span>
+                </div>
+                <div className="text-center md:text-left">
+                  <span className="text-[10px] text-slate-500 uppercase font-semibold block">Liga</span>
+                  <span className="text-xs font-bold text-slate-200 truncate block">{selectedPlayer.ligaClube}</span>
+                </div>
+                <div className="text-center md:text-left">
+                  <span className="text-[10px] text-slate-500 uppercase font-semibold block">Idade</span>
+                  <span className="text-xs font-bold text-slate-200">{selectedPlayer.idade} anos</span>
+                </div>
+                <div className="text-center md:text-left">
+                  <span className="text-[10px] text-slate-500 uppercase font-semibold block">Pé</span>
+                  <span className="text-xs font-bold text-slate-200">{selectedPlayer.pePreferido}</span>
+                </div>
+              </div>
+
+              {/* Estatísticas na Copa */}
+              <div>
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Desempenho Geral nesta Copa de 2026</h4>
+                <div className="grid grid-cols-4 gap-2 text-center">
+                  <div className="bg-slate-900 border border-slate-850 p-2.5 rounded-xl">
+                    <span className="text-lg font-bold text-slate-100 block">{selectedPlayer.estatisticas.partidas}</span>
+                    <span className="text-[9px] text-slate-500 uppercase block">Jogos</span>
+                  </div>
+                  <div className="bg-slate-900 border border-slate-850 p-2.5 rounded-xl">
+                    <span className="text-lg font-bold text-emerald-400 block">{selectedPlayer.estatisticas.golos}</span>
+                    <span className="text-[9px] text-slate-500 uppercase block">Golos</span>
+                  </div>
+                  <div className="bg-slate-900 border border-slate-850 p-2.5 rounded-xl">
+                    <span className="text-lg font-bold text-blue-400 block">{selectedPlayer.estatisticas.assistencias}</span>
+                    <span className="text-[9px] text-slate-500 uppercase block">Assists</span>
+                  </div>
+                  <div className="bg-slate-900 border border-slate-850 p-2.5 rounded-xl">
+                    <span className="text-lg font-bold text-yellow-400 block">{selectedPlayer.estatisticas.notaMedia}</span>
+                    <span className="text-[9px] text-slate-500 uppercase block">Nota Média</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Atributos Técnicos em Detalhes */}
+              <div>
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Atributos Técnicos (Escala FIFA)</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  {[
+                    { label: "Ritmo (Sprint)", key: "ritmo", color: "bg-emerald-400" },
+                    { label: "Finalização", key: "finalizacao", color: "bg-emerald-400" },
+                    { label: "Passe", key: "passe", color: "bg-blue-400" },
+                    { label: "Dribles (Condução)", key: "dribles", color: "bg-blue-400" },
+                    { label: "Defesa", key: "defesa", color: "bg-slate-500" },
+                    { label: "Físico & Força", key: "fisico", color: "bg-slate-500" }
+                  ].map(skill => {
+                    const value = selectedPlayer.atributos[skill.key];
+                    return (
+                      <div key={skill.key} className="space-y-1">
+                        <div className="flex justify-between text-xs">
+                          <span className="text-slate-400">{skill.label}</span>
+                          <span className="font-bold text-slate-200">{value}</span>
+                        </div>
+                        <div className="w-full bg-slate-950 h-2 rounded-full overflow-hidden">
+                          <div 
+                            className={`h-full rounded-full ${skill.color}`} 
+                            style={{ width: `${value}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Informações adicionais do jogador */}
+              <div className="pt-4 border-t border-slate-850 text-xs text-slate-400 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                <div>
+                  <span className="block">Copas disputadas na carreira:</span>
+                  <span className="font-semibold text-slate-300">{selectedPlayer.copasDisputadas}</span>
+                </div>
+                <div>
+                  <span className="block sm:text-right">Valor estimado:</span>
+                  <span className="font-bold text-emerald-400">€ {selectedPlayer.valorMercado}M Euros</span>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Fechar botão no Rodapé */}
+            <div className="bg-slate-950 p-4 border-t border-slate-850 text-center">
+              <button 
+                onClick={() => setSelectedPlayer(null)}
+                className="w-full sm:w-auto px-6 py-2 bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-sm font-bold rounded-xl transition-colors"
+              >
+                Fechar Perfil
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+}
